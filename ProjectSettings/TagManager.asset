@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
+  serializedVersion: 3
   tags: []
   layers:
   - Default
@@ -11,9 +11,9 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
+  - Node
+  - HeldNode
+  - Edge
   - 
   - 
   - 
@@ -41,3 +41,17 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Edge
+    uniqueID: 986990413
+    locked: 0
+  - name: Node
+    uniqueID: 3208945927
+    locked: 0
+  - name: Cost
+    uniqueID: 2659553423
+    locked: 0
+  - name: CostText
+    uniqueID: 1142601603
+    locked: 0
+  m_RenderingLayers:
+  - Default
