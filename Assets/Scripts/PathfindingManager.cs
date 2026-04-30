@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public class PathfindingManager : MonoBehaviour
 {
+    [Header("UI")] 
+    public GameObject ui;
     enum Algorhithm
     {
         BreadthFirstSearch,
@@ -10,12 +12,30 @@ public class PathfindingManager : MonoBehaviour
         Astar
     };
     [Header("Global Algorhithm thingys")]
-    [SerializeField] JeilNode startNode; 
-    [SerializeField] JeilNode destinationNode;
+    public JeilNode startNode; 
+    public JeilNode destinationNode;
     [SerializeField] Algorhithm selectedAlgorhithm = Algorhithm.BreadthFirstSearch;
 
     [Header("Debug")]
     [SerializeField] List<JeilNode> shortestPath = new List<JeilNode>();
+    
+    private void OnDisable()
+    {
+        GameManager.obj.pinput.eventRightClick -= RightClick;
+        GameManager.obj.pinput.eventClick      -= LeftClick;
+        
+        ui.SetActive(false);
+    }
+    
+    private void OnEnable()
+    {
+        GameManager.obj.pinput.eventRightClick += RightClick;
+        GameManager.obj.pinput.eventClick      += LeftClick;
+        
+        GameManager.obj.state = GameManager.GameState.PathFinding;
+        
+        ui.SetActive(true);
+    }
     
     public void LeftClick()
     {   

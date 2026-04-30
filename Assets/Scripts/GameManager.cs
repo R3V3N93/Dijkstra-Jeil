@@ -8,13 +8,13 @@ public class GameManager : MonoBehaviour
     public InputSO pinput;
     public Camera playerCamera;
     
-    enum GameState
+    public enum GameState
     {
         PathFinding,
         Editing
     };
     [Header("Program")] 
-    [SerializeField] GameState state = GameState.PathFinding;
+    public GameState state = GameState.PathFinding;
 
     [Header("Prefabs")] public GameObject prefabNode;
     public GameObject prefabEdge;
@@ -34,8 +34,8 @@ public class GameManager : MonoBehaviour
     public LayerMask layerEdge;
 
     [Header("Managers")] 
-    [SerializeField] private EditorManager managerEditor;
-    [SerializeField] private PathfindingManager managerPathfinding;
+    public EditorManager managerEditor;
+    public PathfindingManager managerPathfinding;
 
     [Header("Debug")] 
     [SerializeField] private List<GameObject> undoBuffer;
@@ -44,27 +44,13 @@ public class GameManager : MonoBehaviour
     {
         if (state == GameState.PathFinding)
         {
-            state = GameState.Editing;
-            pinput.eventRightClick += managerEditor.RightClick;
-            pinput.eventClick      += managerEditor.LeftClick;
-            
-            pinput.eventRightClick -= managerPathfinding.RightClick;
-            pinput.eventClick      -= managerPathfinding.LeftClick;
-
-            managerEditor.gameObject.SetActive(false);
-            managerPathfinding.gameObject.SetActive(true);
+            managerEditor.gameObject.SetActive(true);
+            managerPathfinding.gameObject.SetActive(false);
         }
         else
         {
-            state = GameState.PathFinding;
-            pinput.eventRightClick -= managerEditor.RightClick;
-            pinput.eventClick      -= managerEditor.LeftClick;
-                
-            pinput.eventRightClick += managerPathfinding.RightClick;
-            pinput.eventClick      += managerPathfinding.LeftClick;
-            
-            managerPathfinding.gameObject.SetActive(false);
-            managerEditor.gameObject.SetActive(true);
+            managerPathfinding.gameObject.SetActive(true);
+            managerEditor.gameObject.SetActive(false);
         }
         Debug.Log("Toggled state");
     }
@@ -76,6 +62,8 @@ public class GameManager : MonoBehaviour
         
         pinput.eventRightClick += managerPathfinding.RightClick;
         pinput.eventClick += managerPathfinding.LeftClick;
+        
+        managerPathfinding.gameObject.SetActive(true);
     }
 
     void Update()
@@ -101,7 +89,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    static public Vector3 MousePosition()
+    static public Vector2 MousePosition()
     {
         return obj.playerCamera.ScreenToWorldPoint(new Vector3(obj.pinput.mousePosition.x, obj.pinput.mousePosition.y, obj.playerCamera.nearClipPlane));
     }
@@ -121,28 +109,8 @@ public class GameManager : MonoBehaviour
         return null;
     }
 
-
-    
-
     static public int GetRealLayer(LayerMask from)
     {
         return (int)Math.Log(from.value, 2);
-    }
-    
-    static public void ConnectNodes(JeilNode what1, JeilNode what2)
-    {
-        Debug.Log("Connecting from what1 to what2 ");
-        what1.neighbors.Add(what2);
-        what2.neighbors.Add(what1);
-        
-        what1.gameObject.layer = GetRealLayer(obj.layerNode);
-        what2.gameObject.layer = GetRealLayer(obj.layerNode);
-
-        GameObject _edge = Instantiate(obj.prefabEdge, (what1.transform.position + what2.transform.position) / 2, Quaternion.identity, obj.poolEdge.transform);
-
-        JeilEdge edge = _edge.GetComponent<JeilEdge>();
-        edge.ConnectNodes(what1, what2);
-        what1.neighborEdges[what2] = edge;
-        what2.neighborEdges[what1] = edge;
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public class JeilEdge : MonoBehaviour
 {
-    [SerializeField] int cost = 1;
+    public int cost = 1;
     private List<JeilNode> connectedNodes = new List<JeilNode>(); 
 
     [HideInInspector] public LineRenderer line;
@@ -15,6 +15,7 @@ public class JeilEdge : MonoBehaviour
     void Awake()
     {
         line = GetComponentInChildren<LineRenderer>();
+        line.positionCount = 2;
         input = GetComponent<TMP_InputField>();
         col =  GetComponent<EdgeCollider2D>();
         SetCost(1);
@@ -31,14 +32,18 @@ public class JeilEdge : MonoBehaviour
 
     void Update()
     {
-        line.SetPosition(0, connectedNodes[0].transform.position);
-        line.SetPosition(1, connectedNodes[1].transform.position);
-        this.transform.position = ((connectedNodes[0].transform.position + connectedNodes[1].transform.position) / 2f) + Vector3.forward;
+        if (connectedNodes.Count == 2)
+        {
+            line.SetPosition(0, connectedNodes[0].transform.position);
+            line.SetPosition(1, connectedNodes[1].transform.position);
+            this.transform.position = ((connectedNodes[0].transform.position + connectedNodes[1].transform.position) / 2f) + Vector3.forward;
         
-        List<Vector2> points = new List<Vector2>();
-        points.Add(connectedNodes[0].transform.position - this.transform.position);
-        points.Add(connectedNodes[1].transform.position - this.transform.position); // This is dumb. I need to make 2 separate arrays because their type need to be different?
-        col.SetPoints(points);
+            List<Vector2> points = new List<Vector2>();
+            points.Add(connectedNodes[0].transform.position - this.transform.position);
+            points.Add(connectedNodes[1].transform.position - this.transform.position); // This is dumb. I need to make 2 separate arrays because their types need to be different?
+            col.SetPoints(points);
+        }
+        
     }
 
     public void SetCost(int what)

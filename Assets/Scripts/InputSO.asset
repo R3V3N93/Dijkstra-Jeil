@@ -12,3 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32fd38044dca8f648a0951a81b9f0c5a, type: 3}
   m_Name: InputSO
   m_EditorClassIdentifier: Assembly-CSharp::GManagerSO
+  enabled: 1

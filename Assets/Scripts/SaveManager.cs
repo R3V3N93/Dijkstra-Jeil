@@ -5,6 +5,8 @@ using System.IO;
 
 class SaveManager : MonoBehaviour
 {
+    public string fileName = "config.json";
+    public string path = Application.dataPath + "/";
     void Save()
     {
         // Set index for each node for easier classification from JSON
@@ -26,12 +28,37 @@ class SaveManager : MonoBehaviour
             NodeSaveData datum  = NodeSaveData.Create(nodeFromChild);
             dataArray.data.Add(datum);
         }
-        
-        string fileName = "config.json";
-        string path = Application.dataPath + "/" + fileName;
 
-        File.WriteAllText(path, JsonUtility.ToJson(dataArray));
+        File.WriteAllText(path + fileName, JsonUtility.ToJson(dataArray));
         Debug.Log("Saved config to " + path);
+    }
+    
+    void Load()
+    {
+        NodeSaveDataArray dataArray = new NodeSaveDataArray();
+        string JsonRawString = File.ReadAllText(path + fileName);
+        
+        JsonUtility.FromJsonOverwrite(JsonRawString, dataArray);
+
+        EditorManager editor = GameManager.obj.managerEditor;
+
+        foreach (NodeSaveData datum in dataArray.data)
+        {
+            editor.CreateNode(datum.pos);
+        }
+
+        JeilNode FindNodeByIndex(int index)
+        {
+            foreach (Transform nodeObj in GameManager.obj.poolNode.transform)
+            {
+                JeilNode node = nodeObj.GetComponent<JeilNode>();
+                if (node.index == index)
+                {
+                    return node;
+                }
+            }
+            return null;
+        }
     }
 }
 
@@ -45,17 +72,25 @@ public class NodeSaveDataArray
 public class NodeSaveData
 {
     [SerializeField] public Vector2 pos;
-    [SerializeField] public List<int> neighborIndexes;
-    [SerializeField] public List<int> costBetweenNeighbors;
+    [SerializeField] public List<int> neighborIndexes = new List<int>();
+    [SerializeField] public List<int> costBetweenNeighbors =  new List<int>();
     [SerializeField] public bool isVisible;
+    [SerializeField] public bool isStart;
+    [SerializeField] public bool isDestination;
 
     static public NodeSaveData Create(JeilNode from)
     {
         NodeSaveData data = new NodeSaveData();
         data.pos = from.transform.position;
-        data.neighborIndexes = new List<int>();
-        data.costBetweenNeighbors = new List<int>();
+        foreach (JeilNode neighbor in from.neighbors)
+        {
+            data.neighborIndexes.Add(neighbor.index);
+            data.costBetweenNeighbors.Add(from.neighborEdges[neighbor].cost);
+        }
+        
         data.isVisible = from.visibleInPathfinding;
+        data.isStart = (GameManager.obj.managerPathfinding.startNode == from);
+        data.isDestination = (GameManager.obj.managerPathfinding.destinationNode == from);
         
         return data;
     }
