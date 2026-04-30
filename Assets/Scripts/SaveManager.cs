@@ -7,7 +7,7 @@ class SaveManager : MonoBehaviour
 {
     public string fileName = "config.json";
     public string path = Application.dataPath + "/";
-    void Save()
+    public void Save()
     {
         // Set index for each node for easier classification from JSON
         for (int i = 0; i < GameManager.obj.poolNode.transform.childCount; i++)
@@ -33,7 +33,7 @@ class SaveManager : MonoBehaviour
         Debug.Log("Saved config to " + path);
     }
     
-    void Load()
+    public void Load()
     {
         NodeSaveDataArray dataArray = new NodeSaveDataArray();
         string JsonRawString = File.ReadAllText(path + fileName);
@@ -42,9 +42,22 @@ class SaveManager : MonoBehaviour
 
         EditorManager editor = GameManager.obj.managerEditor;
 
+        foreach(Transform purged in GameManager.obj.poolNode.transform)
+        {
+            JeilNode purgedNode = purged.GetComponent<JeilNode>();
+            editor.DeleteNode(purgedNode);
+        }
+            
+        int curIndex = 0;
         foreach (NodeSaveData datum in dataArray.data)
         {
-            editor.CreateNode(datum.pos);
+            JeilNode createdNode = editor.CreateNode(datum.pos, curIndex);
+            for(int i = 0; i < datum.neighborIndexes.Count; i++)
+            {
+                editor.ConnectNodes(createdNode, FindNodeByIndex(datum.neighborIndexes[i]), datum.costBetweenNeighbors[i]);
+            }
+
+            curIndex++;
         }
 
         JeilNode FindNodeByIndex(int index)

@@ -16,6 +16,7 @@ public class EditorManager : MonoBehaviour
     [SerializeField] private JeilEdge selectedEdge;
     [SerializeField] private JeilNode selectedNode;
     [SerializeField] private JeilNode movingNode;
+    public int nodeCount;
     
     // Node를 Holding하고 있다는건 우클릭 통해서 노드 생성 후
     // 목적지 노드를 '잡고' 있다는 뜻임. Moving과 혼동 주의!
@@ -103,7 +104,7 @@ public class EditorManager : MonoBehaviour
             // 노드 위에 있으면
             if (clickedNode != null)
             {
-                Destroy(holdingEndNode.gameObject);
+                DeleteNode(holdingEndNode);
                 ConnectNodes(holdingStartNode, clickedNode);
                 holdingStartNode = null;
                 Debug.Log("Finished connecting to existing Node in right click");
@@ -149,7 +150,7 @@ public class EditorManager : MonoBehaviour
             JeilNode clickedNode = GameManager.NodeOnMouse();
             if (clickedNode != null)
             {
-                Destroy(holdingEndNode.gameObject);
+                DeleteNode(holdingEndNode);
                 ConnectNodes(holdingStartNode, clickedNode);
                 holdingStartNode = null;
                 Debug.Log("Finished connecting to existing Node on left click");
@@ -185,9 +186,14 @@ public class EditorManager : MonoBehaviour
         DeselectInputField();
     }
 
-    public JeilNode CreateNode(Vector2 pos)
+    public JeilNode CreateNode(Vector2 pos, int index = -1)
     {
-        return Instantiate(GameManager.obj.prefabNode, pos, Quaternion.identity, GameManager.obj.poolNode.transform).GetComponent<JeilNode>();
+        nodeCount++;
+        
+        JeilNode product = Instantiate(GameManager.obj.prefabNode, pos, Quaternion.identity, GameManager.obj.poolNode.transform).GetComponent<JeilNode>();
+        if(index != -1 && index >= 0)
+            product.index = index;
+        return product;
     }
 
     public void DeleteNode(JeilNode what)
@@ -195,15 +201,22 @@ public class EditorManager : MonoBehaviour
         foreach (JeilNode neighbor in what.neighbors)
         {
             if (neighbor == null)
-                break;
+                continue;
             Destroy(what.neighborEdges[neighbor].gameObject);
         }
         Destroy(what.gameObject);
+        nodeCount--;
     }
     
-    public void ConnectNodes(JeilNode what1, JeilNode what2)
+    public void ConnectNodes(JeilNode what1, JeilNode what2, int cost = 1)
     {
         Debug.Log("Connecting from what1 to what2 ");
+        if(!what1 || !what2)
+            return;
+
+        if(what1.neighbors.Contains(what2))
+            return;
+
         what1.neighbors.Add(what2);
         what2.neighbors.Add(what1);
         
@@ -213,6 +226,7 @@ public class EditorManager : MonoBehaviour
         GameObject _edge = Instantiate(GameManager.obj.prefabEdge, (what1.transform.position + what2.transform.position) / 2, Quaternion.identity, GameManager.obj.poolEdge.transform);
 
         JeilEdge edge = _edge.GetComponent<JeilEdge>();
+        edge.SetCost(cost);
         edge.ConnectNodes(what1, what2);
         what1.neighborEdges[what2] = edge;
         what2.neighborEdges[what1] = edge;
