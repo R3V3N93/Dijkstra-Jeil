@@ -91,7 +91,13 @@ public class GameManager : MonoBehaviour
 
     static public Vector2 MousePosition()
     {
-        return obj.playerCamera.ScreenToWorldPoint(new Vector3(obj.pinput.mousePosition.x, obj.pinput.mousePosition.y, obj.playerCamera.nearClipPlane));
+        Vector3 position = obj.playerCamera.ScreenToWorldPoint(new Vector3(obj.pinput.mousePosition.x, obj.pinput.mousePosition.y, obj.playerCamera.nearClipPlane));
+
+        if(GameManager.obj.pinput.shift)
+        {
+            position.y
+        }
+        return ;
     }
 
     static public JeilNode NodeOnMouse()

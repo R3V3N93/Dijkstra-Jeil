@@ -17,6 +17,7 @@ public class InputSO : ScriptableObject, InputSystem.IUIActions
     public Vector2 scroll { get; private set; }
     public bool middleClicked { get; private set; }
     public bool ctrl { get; private set; }
+    public bool shift { get; private set; }
 
     private InputSystem pinput;
 
@@ -90,6 +91,13 @@ public class InputSO : ScriptableObject, InputSystem.IUIActions
         if(!enabled) return;
         if(context.performed)    ctrl = true;
         else                     ctrl = false;
+    }
+
+    public void OnShift(InputAction.CallbackContext context)
+    {
+        if(!enabled) return;
+        if(context.performed)    shift = true;
+        else                     shift = false;
     }
 
     public void OnCancel(InputAction.CallbackContext context)
