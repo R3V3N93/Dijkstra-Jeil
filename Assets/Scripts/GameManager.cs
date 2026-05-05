@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Debug")] 
     [SerializeField] private List<GameObject> undoBuffer;
+    public Vector2 mousePositionOld;
 
     public void ToggleState()
     {
@@ -70,6 +71,11 @@ public class GameManager : MonoBehaviour
     {
         Scroll();
         Panning();
+
+        if (!pinput.shift)
+        {
+            mousePositionOld = pinput.mousePosition;
+        }
     }
     
     void Scroll()
@@ -91,13 +97,17 @@ public class GameManager : MonoBehaviour
 
     static public Vector2 MousePosition()
     {
-        Vector3 position = obj.playerCamera.ScreenToWorldPoint(new Vector3(obj.pinput.mousePosition.x, obj.pinput.mousePosition.y, obj.playerCamera.nearClipPlane));
-
-        if(GameManager.obj.pinput.shift)
+        Vector3 screenPosition = new Vector3(obj.pinput.mousePosition.x, obj.pinput.mousePosition.y, obj.playerCamera.nearClipPlane);
+        if (obj.pinput.shift && obj.pinput.mouseDelta.x != obj.pinput.mouseDelta.y)
         {
-            position.y
+            screenPosition.x -= obj.pinput.mouseDelta.x;
+            screenPosition.y -= obj.pinput.mouseDelta.y;
+
+            if (obj.pinput.mouseDelta.x > obj.pinput.mouseDelta.y)
+                screenPosition.x += obj.pinput.mouseDelta.x;
+            else screenPosition.y += obj.pinput.mouseDelta.y;
         }
-        return ;
+        return obj.playerCamera.ScreenToWorldPoint(screenPosition);
     }
 
     static public JeilNode NodeOnMouse()

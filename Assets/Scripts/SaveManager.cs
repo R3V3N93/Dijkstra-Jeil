@@ -54,7 +54,9 @@ class SaveManager : MonoBehaviour
             JeilNode createdNode = editor.CreateNode(datum.pos, curIndex);
             for(int i = 0; i < datum.neighborIndexes.Count; i++)
             {
-                editor.ConnectNodes(createdNode, FindNodeByIndex(datum.neighborIndexes[i]), datum.costBetweenNeighbors[i]);
+                JeilNode targetNode = FindNodeByIndex(datum.neighborIndexes[i]);
+                if(targetNode != null)
+                    editor.ConnectNodes(createdNode, targetNode, datum.costBetweenNeighbors[i]);
             }
 
             curIndex++;

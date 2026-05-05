@@ -5,7 +5,7 @@ public class PathfindingManager : MonoBehaviour
 {
     [Header("UI")] 
     public GameObject ui;
-    enum Algorhithm
+    enum Algorithm
     {
         BreadthFirstSearch,
         Dijkstra,
@@ -14,10 +14,17 @@ public class PathfindingManager : MonoBehaviour
     [Header("Global Algorhithm thingys")]
     public JeilNode startNode; 
     public JeilNode destinationNode;
-    [SerializeField] Algorhithm selectedAlgorhithm = Algorhithm.BreadthFirstSearch;
+    [SerializeField] Algorithm selectedAlgorhithm = Algorithm.BreadthFirstSearch;
 
     [Header("Debug")]
     [SerializeField] List<JeilNode> shortestPath = new List<JeilNode>();
+
+    [SerializeField] private LineRenderer line;
+
+    void Awake()
+    {
+        line = GetComponent<LineRenderer>();
+    }
     
     private void OnDisable()
     {
@@ -37,6 +44,11 @@ public class PathfindingManager : MonoBehaviour
         ui.SetActive(true);
     }
     
+    public void SetAlgorithm(int to)
+    {
+        Debug.Log(to);
+        selectedAlgorhithm = (Algorithm)to;
+    }
     public void LeftClick()
     {   
     }
@@ -48,15 +60,16 @@ public class PathfindingManager : MonoBehaviour
 
     public void StartPathFinding()
     {
+        line.positionCount = 0;
         switch (selectedAlgorhithm)
         {
-            case Algorhithm.BreadthFirstSearch:
+            case Algorithm.BreadthFirstSearch:
                 BreadthFirstSearch();
                 break;
-            case Algorhithm.Dijkstra:
+            case Algorithm.Dijkstra:
                 Dijkstra();
                 break;
-            case Algorhithm.Astar:
+            case Algorithm.Astar:
                 Astar();
                 break;
         }
@@ -65,6 +78,12 @@ public class PathfindingManager : MonoBehaviour
         {
             Debug.LogError("Something's wrong with Algorhithm execution. Check log.");
             return;
+        }
+
+        line.positionCount = shortestPath.Count;
+        for (int i = 0; i < shortestPath.Count; i++)
+        {
+            line.SetPosition(i, shortestPath[i].transform.position);
         }
         
         // Pathfinding is over. Trim the list
