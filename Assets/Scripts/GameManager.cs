@@ -108,18 +108,14 @@ public class GameManager : MonoBehaviour
         return obj.playerCamera.ScreenToWorldPoint(screenPosition);
     }
 
-    static public JeilNode NodeOnMouse()
+    static public JeilElement GetElementOnMouse()
     {
-        Collider2D raycasted = Physics2D.OverlapPoint(MousePosition(), obj.layerNode);
+        Collider2D raycasted = Physics2D.OverlapPoint(MousePosition(), obj.layerNode|obj.layerEdge);
         if (raycasted != null)
         {
-            JeilNode node = raycasted.gameObject.GetComponent<JeilNode>();
-            if (node != null)
-            {
-                return node;
-            }
+            JeilElement element = raycasted.gameObject.GetComponent<JeilElement>();
+            return element;
         }
-        
         return null;
     }
 

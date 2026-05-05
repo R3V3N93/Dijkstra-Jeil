@@ -1,5 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public abstract class JeilElement : MonoBehaviour
+public class JeilElement : MonoBehaviour
 { }

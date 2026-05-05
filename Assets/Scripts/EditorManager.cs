@@ -6,38 +6,39 @@ using System.Collections.Generic;
 
 public class EditorManager : MonoBehaviour
 {
+    enum StatesT
+    {
+        Selecting,
+        Connecting,
+        Moving
+    }
     public List<JeilElement> selections = new List<JeilElement>();
     [Header("UI")] 
     public GameObject ui;
-    public GameObject costInputField;
-    public GameObject nodeSubMenu;
+
+    [Header("Connecting")] 
+    [SerializeField] private JeilNode connectStart;
+    [SerializeField] private JeilNode connectEnd;
     
-    [Header("Debug")]
-    [SerializeField] private JeilNode holdingStartNode;
-    [SerializeField] private JeilNode holdingEndNode;
-    [SerializeField] private JeilNode movingNode;
+    [Header("Selecting")]
+    [SerializeField] private StatesT state = StatesT.Selecting;
     [SerializeField] private Rect dragRect = Rect.zero;
     [SerializeField] private bool isDragging;
     [SerializeField] private Texture2D dragImage;
     [SerializeField] private Texture2D testImage;
-
-    // Node를 Holding하고 있다는건 우클릭 통해서 노드 생성 후
-    // 목적지 노드를 '잡고' 있다는 뜻임. Moving과 혼동 주의!
-    bool IsHoldingNode()
-    {
-        return (holdingEndNode != null);
-    }
-    
-    // 노드를 Moving 하고 있다는건 우클릭으로 노드를 클릭하고
-    // 노르를 옮기고 있다는 뜻임. Holding과 혼동 주의!
-    bool IsMovingNode()
-    {
-        return (movingNode != null);
-    }
     
     private void Update()
     {
-        HoldingMovingNode();
+        switch (state)
+        {
+            case StatesT.Selecting:
+                break;
+            case StatesT.Connecting:
+                if(connectEnd != null) connectEnd.transform.position = GameManager.MousePosition();
+                break;
+            case StatesT.Moving:
+                break;
+        }
     }
 
     private void OnGUI()
@@ -72,83 +73,113 @@ public class EditorManager : MonoBehaviour
         
         ui.SetActive(true);
     }
-
-    void HoldingMovingNode()
-    {
-        if (IsHoldingNode())
-        {
-            holdingEndNode.transform.position = GameManager.MousePosition();
-        }
-        if (IsMovingNode())
-        {
-            movingNode.transform.position = GameManager.MousePosition();
-        }
-    }
     
-    // eventDelete에 할당되는 함수.
     public void Delete()
     {
-        // 노드에 마우스 갖다댔으면
-        JeilNode mouseOnNode = GameManager.NodeOnMouse();
-        if (mouseOnNode != null)
-        {
-            DeleteNode(mouseOnNode); // 그 노드 지워버림
-        }
+
     }
     
-    // eventRightClick에 할당되는 함수.
+    public void LeftClickOn()
+    {
+        switch (state)
+        {
+            case StatesT.Selecting:
+                StartDragging();
+                break;
+            case StatesT.Connecting:
+                break;
+            case StatesT.Moving:
+                break;
+        }
+        
+    }
+    public void LeftClickOff()
+    {
+        switch (state)
+        {
+            case StatesT.Selecting:
+                StopDragging();
+                break;
+            case StatesT.Connecting:
+                JeilElement elem = GameManager.GetElementOnMouse();
+                if (elem == null || elem is JeilEdge)
+                {
+                    connectEnd.Unhold();
+                    ConnectNodes(connectStart, connectEnd);
+                    connectStart = null;
+                    connectEnd = null;
+                    state = StatesT.Selecting;
+                    break;
+                }
+
+                if (elem is JeilNode)
+                {
+                    DeleteNode(connectEnd);
+                    ConnectNodes(connectStart, (JeilNode)elem);
+                    connectStart = null;
+                    connectEnd = null;
+                    state = StatesT.Selecting;
+                    break;
+                }
+                break;
+            case StatesT.Moving:
+                break;
+        }
+        
+    }
+    
     public void RightClick()
     {
-        // Moving 중일때는 노드를 그 자리에 둠.
-        if (IsMovingNode())
+        JeilElement elem = GameManager.GetElementOnMouse();
+        switch (state)
         {
-            movingNode = null;
-            return;
-        }
-        JeilNode clickedNode = GameManager.NodeOnMouse();
-        // Holding 하고 있을때 우클릭 누르면
-        // 기존에 있는 노드나 에지에 우클릭 했으면 그 노드에 연결하고 끝
-        // 허공에 우클릭 했으면 노드 하나를 그 자리에 둔 후 그자리에서 부터 새 노드 이음
-        if (IsHoldingNode())
-        {
-            // 노드 위에 있으면
-            if (clickedNode != null)
-            {
-                DeleteNode(holdingEndNode);
-                ConnectNodes(holdingStartNode, clickedNode);
-                holdingStartNode = null;
-                Debug.Log("Finished connecting to existing Node in right click");
-            }
-            else // 허공이면
-            {
-                ConnectNodes(holdingStartNode, holdingEndNode);
-                holdingStartNode = holdingEndNode;
-                holdingEndNode = CreateNode(GameManager.MousePosition());
-                Debug.Log("Continuing connecting node from right click");
-            }
-            
-            return;
-        }
+            case StatesT.Selecting:
+                if (elem == null)
+                {
+                    state = StatesT.Connecting;
+                    connectStart = CreateNode(GameManager.MousePosition());
+                    connectEnd = CreateNode(GameManager.MousePosition());
+                    connectEnd.Hold();
+                    break;
+                }
+                if (elem is JeilNode)
+                {
+                    if (GameManager.obj.pinput.ctrl)
+                    {
+                        state = StatesT.Connecting;
+                        connectStart = (JeilNode)elem;
+                        connectEnd = CreateNode(GameManager.MousePosition());
+                        connectEnd.Hold();
+                        break;
+                    }
+                    break;
+                }
+                break;
+            case StatesT.Connecting:
+                if (elem == null || elem is JeilEdge)
+                {
+                    ConnectNodes(connectStart, connectEnd);
+                    connectEnd.Unhold();
+                    connectStart = connectEnd;
+                    connectEnd = CreateNode(GameManager.MousePosition());
+                    connectEnd.Hold();
+                    break;
+                }
 
-        if (clickedNode != null)
-        {
-            if (GameManager.obj.pinput.ctrl)
-            {
-                holdingStartNode = clickedNode;
-                holdingEndNode = CreateNode(GameManager.MousePosition());
-            }
-            else
-            {
-                movingNode = clickedNode;
-                Debug.Log("Selected Node to move");
-            }
-            return;
+                if (elem is JeilNode)
+                {
+                    DeleteNode(connectEnd);
+                    ConnectNodes(connectStart, (JeilNode)elem);
+                    
+                    connectStart = null;
+                    connectEnd = null;
+                    state = StatesT.Selecting;
+                    break;
+                }
+                break;
+            case StatesT.Moving:
+                break;
         }
-
-        // Holding, Moving 다 아니면 노드 새로 시작
-        Debug.Log("Created New start and end node");
-        holdingStartNode = CreateNode(GameManager.MousePosition());
-        holdingEndNode = CreateNode(GameManager.MousePosition());
     }
 
     private void StartDragging()
@@ -190,35 +221,6 @@ public class EditorManager : MonoBehaviour
         dragRect = Rect.zero;
     }
 
-    public void LeftClickOn()
-    {
-        if (IsHoldingNode() || IsMovingNode()) return;
-
-        StartDragging();
-    }
-    public void LeftClickOff()
-    {
-        // Holding 상태면 마우스 위치에 노드 고정하고, 연결하고 Holding 종료함.
-        if (IsHoldingNode())
-        {
-            JeilNode clickedNode = GameManager.NodeOnMouse();
-            if (clickedNode != null)
-            {
-                DeleteNode(holdingEndNode);
-                ConnectNodes(holdingStartNode, clickedNode);
-                holdingStartNode = null;
-                Debug.Log("Finished connecting to existing Node on left click");
-                return;
-            }
-            ConnectNodes(holdingStartNode, holdingEndNode);
-            holdingEndNode = null;
-            holdingStartNode = null;
-            Debug.Log("Finished connecting node from Left Click");
-            return;
-        }
-        StopDragging();
-    }
-    
     public void Cancel()
     {
     }
