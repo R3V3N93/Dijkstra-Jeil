@@ -2,9 +2,11 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class EditorManager : MonoBehaviour
 {
+    public List<JeilElement> selections = new List<JeilElement>();
     [Header("UI")] 
     public GameObject ui;
     public GameObject costInputField;
@@ -13,11 +15,12 @@ public class EditorManager : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private JeilNode holdingStartNode;
     [SerializeField] private JeilNode holdingEndNode;
-    [SerializeField] private JeilEdge selectedEdge;
-    [SerializeField] private JeilNode selectedNode;
     [SerializeField] private JeilNode movingNode;
-    public int nodeCount;
-    
+    [SerializeField] private Rect dragRect = Rect.zero;
+    [SerializeField] private bool isDragging;
+    [SerializeField] private Texture2D dragImage;
+    [SerializeField] private Texture2D testImage;
+
     // Node를 Holding하고 있다는건 우클릭 통해서 노드 생성 후
     // 목적지 노드를 '잡고' 있다는 뜻임. Moving과 혼동 주의!
     bool IsHoldingNode()
@@ -37,10 +40,16 @@ public class EditorManager : MonoBehaviour
         HoldingMovingNode();
     }
 
+    private void OnGUI()
+    {
+        UpdateDragging();
+    }
+
     private void OnDisable()
     {
         GameManager.obj.pinput.eventRightClick -= RightClick;
-        GameManager.obj.pinput.eventClick      -= LeftClick;
+        GameManager.obj.pinput.eventClickOn      -= LeftClickOn;
+        GameManager.obj.pinput.eventClickOff      -= LeftClickOff;
         
         GameManager.obj.pinput.eventDelete     -= Delete;
         
@@ -52,7 +61,8 @@ public class EditorManager : MonoBehaviour
     private void OnEnable()
     {
         GameManager.obj.pinput.eventRightClick += RightClick;
-        GameManager.obj.pinput.eventClick      += LeftClick;
+        GameManager.obj.pinput.eventClickOn      += LeftClickOn;
+        GameManager.obj.pinput.eventClickOff      += LeftClickOff;
         
         GameManager.obj.pinput.eventDelete     += Delete;
         
@@ -140,9 +150,53 @@ public class EditorManager : MonoBehaviour
         holdingStartNode = CreateNode(GameManager.MousePosition());
         holdingEndNode = CreateNode(GameManager.MousePosition());
     }
+
+    private void StartDragging()
+    {
+        dragRect.Set(GameManager.obj.pinput.mousePosition.x, Screen.height - GameManager.obj.pinput.mousePosition.y, 0, 0);
+        selections.Clear();
+        isDragging = true;
+    }
+
+    private void UpdateDragging()
+    {
+        if (!isDragging) return;
+        float width = GameManager.obj.pinput.mousePosition.x - dragRect.x;
+        float height = (Screen.height - GameManager.obj.pinput.mousePosition.y) - dragRect.y;
+        dragRect.Set(dragRect.x, dragRect.y, width, height);
+        GUI.DrawTexture(dragRect, dragImage, ScaleMode.StretchToFill, true);
+    }
     
-    // eventClick에 할당되는 함수
-    public void LeftClick()
+    private void StopDragging()
+    {
+        if (!isDragging) return;
+
+        if (dragRect.width * dragRect.height < 100)
+        {
+            Collider2D raycasted = Physics2D.OverlapPoint(GameManager.MousePosition(), GameManager.obj.layerEdge|GameManager.obj.layerNode);
+            if (raycasted != null)
+            {
+                if (raycasted.gameObject.layer == GameManager.GetRealLayer(GameManager.obj.layerEdge))
+                {
+                    
+                }
+                else
+                {
+                }
+            }
+        }
+        
+        isDragging = false;
+        dragRect = Rect.zero;
+    }
+
+    public void LeftClickOn()
+    {
+        if (IsHoldingNode() || IsMovingNode()) return;
+
+        StartDragging();
+    }
+    public void LeftClickOff()
     {
         // Holding 상태면 마우스 위치에 노드 고정하고, 연결하고 Holding 종료함.
         if (IsHoldingNode())
@@ -162,37 +216,19 @@ public class EditorManager : MonoBehaviour
             Debug.Log("Finished connecting node from Left Click");
             return;
         }
-        
-        // 엣지 클릭했을 떄 그 엣지의 비용 수정
-        Collider2D raycasted = Physics2D.OverlapPoint(GameManager.MousePosition(), GameManager.obj.layerEdge|GameManager.obj.layerNode);
-        if (raycasted != null)
-        {
-            if (raycasted.gameObject.layer == GameManager.GetRealLayer(GameManager.obj.layerEdge))
-            {
-                selectedEdge = raycasted.gameObject.GetComponentInParent<JeilEdge>();
-                ActivateEdgeSubmenu();
-            }
-            else
-            {
-                selectedNode = raycasted.gameObject.GetComponentInParent<JeilNode>();
-                ActivateNodeSubmenu();
-            }
-        }
+        StopDragging();
     }
     
     public void Cancel()
     {
-        DeselectNodeSubmenu();
-        DeselectInputField();
     }
 
-    public JeilNode CreateNode(Vector2 pos, int index = -1)
-    {
-        nodeCount++;
-        
+    public JeilNode CreateNode(Vector2 pos, int index = -1, bool landmark = false)
+    {   
         JeilNode product = Instantiate(GameManager.obj.prefabNode, pos, Quaternion.identity, GameManager.obj.poolNode.transform).GetComponent<JeilNode>();
         if(index != -1 && index >= 0)
             product.index = index;
+        product.visibleInPathfinding = landmark;
         return product;
     }
 
@@ -202,10 +238,10 @@ public class EditorManager : MonoBehaviour
         {
             if (neighbor == null)
                 continue;
-            Destroy(what.neighborEdges[neighbor].gameObject);
+            // 후에 반드시 Destroy()으로 바뀌어야함 !!!!!!!!!!!!!!!!!!!!
+            DestroyImmediate(what.neighborEdges[neighbor].gameObject);
         }
-        Destroy(what.gameObject);
-        nodeCount--;
+        DestroyImmediate(what.gameObject);
     }
     
     public void ConnectNodes(JeilNode what1, JeilNode what2, int cost = 1)
@@ -232,56 +268,13 @@ public class EditorManager : MonoBehaviour
         what2.neighborEdges[what1] = edge;
     }
 
-    public void ActivateEdgeSubmenu()
-    {
-        costInputField.transform.position = GameManager.obj.pinput.mousePosition;
-        costInputField.SetActive(true);
-        
-        GameManager.obj.pinput.enabled = false;
-        
-        TMP_InputField inputField = costInputField.GetComponentInChildren<TMP_InputField>();
-        inputField.ActivateInputField();
-    }
-
-    public void UpdateSelectedEdge()
-    {
-        selectedEdge.SetCost(int.Parse(costInputField.GetComponentInChildren<TMP_InputField>().text));
-    }
-
-    public void DeselectInputField()
-    {
-        costInputField.GetComponentInChildren<TMP_InputField>().DeactivateInputField();
-        costInputField.SetActive(false);
-        selectedEdge = null;
-        GameManager.obj.pinput.enabled = true;
-    }
-    
-    public void ActivateNodeSubmenu()
-    {
-        nodeSubMenu.transform.position = GameManager.obj.pinput.mousePosition;
-        nodeSubMenu.SetActive(true);
-        GameManager.obj.pinput.enabled = false;
-    }
-    
-    public void UpdateSelectedNode()
-    {
-        selectedNode.visibleInPathfinding = nodeSubMenu.GetComponentInChildren<Toggle>().isOn;
-    }
-
-    public void DeselectNodeSubmenu()
-    {
-        nodeSubMenu.SetActive(false);
-        selectedNode = null;
-        GameManager.obj.pinput.enabled = true;
-    }
-
     public void SetToStartNode()
     {
-        GameManager.obj.managerPathfinding.startNode = selectedNode;
+        GameManager.obj.managerPathfinding.startNode = null;
     }
     
     public void SetToDestinationNode()
     {
-        GameManager.obj.managerPathfinding.destinationNode = selectedNode;
+        GameManager.obj.managerPathfinding.destinationNode = null;
     }
 }

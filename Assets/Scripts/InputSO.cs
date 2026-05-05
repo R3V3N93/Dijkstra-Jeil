@@ -7,7 +7,8 @@ public class InputSO : ScriptableObject, InputSystem.IUIActions
 {
     public bool enabled = true;
     
-    public event Action eventClick;
+    public event Action eventClickOn;
+    public event Action eventClickOff;
     public event Action eventRightClick;
     public event Action eventDelete;
     public event Action eventCancel;
@@ -52,7 +53,8 @@ public class InputSO : ScriptableObject, InputSystem.IUIActions
     public void OnClick(InputAction.CallbackContext context)
     {
         if(!enabled) return;
-        if(context.canceled) eventClick?.Invoke();
+        if(context.performed) eventClickOn?.Invoke();
+        if(context.canceled) eventClickOff?.Invoke();
     }
 
     public void OnRightClick(InputAction.CallbackContext context)
@@ -98,6 +100,10 @@ public class InputSO : ScriptableObject, InputSystem.IUIActions
         if(!enabled) return;
         if(context.performed)    shift = true;
         else                     shift = false;
+    }
+
+    public void OnSpace(InputAction.CallbackContext context)
+    {
     }
 
     public void OnCancel(InputAction.CallbackContext context)

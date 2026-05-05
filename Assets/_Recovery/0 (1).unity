@@ -215,8 +215,8 @@ LineRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -1377920515
-  m_SortingLayer: 5
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions: []
@@ -227,8 +227,8 @@ LineRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.10705185
-        value: 0.5174446
+        time: 0.10966492
+        value: 1
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -919,7 +919,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8e6502a6b4568342bd4d789ec214df5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  selections: []
   ui: {fileID: 1755438156}
   costInputField: {fileID: 737620389}
   nodeSubMenu: {fileID: 103146534}

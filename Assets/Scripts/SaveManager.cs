@@ -1,117 +1,113 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Collections;
 using System.IO;
 
 class SaveManager : MonoBehaviour
 {
     public string fileName = "config.json";
-    public string path = Application.dataPath + "/";
+    public string path = Application.dataPath + "\\";
     public void Save()
     {
-        // Set index for each node for easier classification from JSON
-        for (int i = 0; i < GameManager.obj.poolNode.transform.childCount; i++)
-        {
-            Transform child = GameManager.obj.poolNode.transform.GetChild(i);
-            
-            JeilNode nodeFromChild = child.GetComponent<JeilNode>();
-
-            nodeFromChild.index = i;
-        }
+        List<JeilNode> nodes = GameManager.GetNodes();
+        List<JeilEdge> edges = GameManager.GetEdges();
         
-        NodeSaveDataArray dataArray =  new NodeSaveDataArray();
-        // Now as we have indexes, we can save them into Json
-        foreach (Transform child in GameManager.obj.poolNode.transform)
-        {
-            JeilNode nodeFromChild = child.GetComponent<JeilNode>();
-            
-            NodeSaveData datum  = NodeSaveData.Create(nodeFromChild);
-            dataArray.data.Add(datum);
-        }
-
+        // Set index for each node for easier classification from JSON
+        for (int i = 0; i < nodes.Count; i++) nodes[i].index = i;
+        
+        SaveData dataArray =  new SaveData();
+        
+        // Write all necessary stuffs to JSON
+        dataArray.startNode = (GameManager.obj.managerPathfinding.startNode != null ? GameManager.obj.managerPathfinding.startNode.index : -1);
+        dataArray.destinationNode = (GameManager.obj.managerPathfinding.destinationNode != null ? GameManager.obj.managerPathfinding.destinationNode.index : -1);
+        foreach(JeilNode i in nodes) dataArray.nodes.Add(NodeSaveData.Create(i));
+        foreach(JeilEdge i in edges) dataArray.edges.Add(EdgeSaveData.Create(i));
+        
+        Debug.Log(JsonUtility.ToJson(dataArray, true));
         File.WriteAllText(path + fileName, JsonUtility.ToJson(dataArray));
         Debug.Log("Saved config to " + path);
     }
     
     public void Load()
     {
-        NodeSaveDataArray dataArray = new NodeSaveDataArray();
-        string JsonRawString = File.ReadAllText(path + fileName);
+        SaveData dataArray = new SaveData();
+        string _jsonRawString = File.ReadAllText(path + fileName);
         
-        JsonUtility.FromJsonOverwrite(JsonRawString, dataArray);
+        JsonUtility.FromJsonOverwrite(_jsonRawString, dataArray);
 
         EditorManager editor = GameManager.obj.managerEditor;
-
-        foreach(Transform purged in GameManager.obj.poolNode.transform)
+        PathfindingManager pathfinding = GameManager.obj.managerPathfinding;
+        
+        // Remove all things from the scene
+        foreach(JeilNode i in GameManager.GetNodes()) editor.DeleteNode(i);
+        
+        if (GameManager.obj.poolNode.transform.childCount != 0)
+            Debug.LogError("There's something wrong with node purge process!");
+        if (GameManager.obj.poolEdge.transform.childCount != 0)
+            Debug.LogError("There's something wrong with edge purge process!");
+        
+        // Create nodes first
+        foreach (NodeSaveData it in dataArray.nodes)
         {
-            JeilNode purgedNode = purged.GetComponent<JeilNode>();
-            editor.DeleteNode(purgedNode);
-        }
+            JeilNode createdNode = editor.CreateNode(it.pos, it.index, it.isLandmark);
             
-        int curIndex = 0;
-        foreach (NodeSaveData datum in dataArray.data)
-        {
-            JeilNode createdNode = editor.CreateNode(datum.pos, curIndex);
-            for(int i = 0; i < datum.neighborIndexes.Count; i++)
-            {
-                JeilNode targetNode = FindNodeByIndex(datum.neighborIndexes[i]);
-                if(targetNode != null)
-                    editor.ConnectNodes(createdNode, targetNode, datum.costBetweenNeighbors[i]);
-            }
-
-            curIndex++;
+            // Assign start/destination node in advance
+            if (it.index == dataArray.startNode) pathfinding.startNode = createdNode;
+            if (it.index == dataArray.destinationNode) pathfinding.destinationNode = createdNode;
         }
 
-        JeilNode FindNodeByIndex(int index)
+        JeilNode FindNodeFromIndex(int index)
         {
-            foreach (Transform nodeObj in GameManager.obj.poolNode.transform)
-            {
-                JeilNode node = nodeObj.GetComponent<JeilNode>();
-                if (node.index == index)
-                {
-                    return node;
-                }
-            }
+            foreach (JeilNode it in GameManager.GetNodes()) if (it.index == index) return it;
             return null;
+        };
+        
+        foreach (EdgeSaveData it in dataArray.edges)
+        {
+            editor.ConnectNodes(FindNodeFromIndex(it.indexL), FindNodeFromIndex(it.indexR), it.cost);
         }
     }
 }
 
 [Serializable]
-public class NodeSaveDataArray
+public class SaveData
 {
-    public List<NodeSaveData> data = new List<NodeSaveData>();
+    [SerializeField] public int startNode;
+    [SerializeField] public int destinationNode;
+    [SerializeField] public List<NodeSaveData> nodes = new List<NodeSaveData>();
+    [SerializeField] public List<EdgeSaveData> edges = new List<EdgeSaveData>();
 }
 
 [Serializable]
 public class NodeSaveData
 {
+    [SerializeField] public int index;
     [SerializeField] public Vector2 pos;
-    [SerializeField] public List<int> neighborIndexes = new List<int>();
-    [SerializeField] public List<int> costBetweenNeighbors =  new List<int>();
-    [SerializeField] public bool isVisible;
-    [SerializeField] public bool isStart;
-    [SerializeField] public bool isDestination;
+    [SerializeField] public bool isLandmark;
 
     static public NodeSaveData Create(JeilNode from)
     {
         NodeSaveData data = new NodeSaveData();
         data.pos = from.transform.position;
-        foreach (JeilNode neighbor in from.neighbors)
-        {
-            data.neighborIndexes.Add(neighbor.index);
-            data.costBetweenNeighbors.Add(from.neighborEdges[neighbor].cost);
-        }
-        
-        data.isVisible = from.visibleInPathfinding;
-        data.isStart = (GameManager.obj.managerPathfinding.startNode == from);
-        data.isDestination = (GameManager.obj.managerPathfinding.destinationNode == from);
-        
+        data.index = from.index;
+        data.isLandmark = from.visibleInPathfinding;
         return data;
     }
-	
-    public string ToJson()
+}
+
+[Serializable]
+public class EdgeSaveData
+{
+    [SerializeField] public int indexL;
+    [SerializeField] public int indexR;
+    [SerializeField] public int cost;
+    static public EdgeSaveData Create(JeilEdge from)
     {
-        return JsonUtility.ToJson(this);
+        EdgeSaveData data = new EdgeSaveData();
+        data.indexL = from.connectedNodes[0].index;
+        data.indexR = from.connectedNodes[1].index;
+        data.cost = from.cost;
+        return data;
     }
 }

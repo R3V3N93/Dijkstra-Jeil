@@ -53,5 +53,8 @@ TagManager:
   - name: CostText
     uniqueID: 1142601603
     locked: 0
+  - name: Path
+    uniqueID: 2917046781
+    locked: 0
   m_RenderingLayers:
   - Default

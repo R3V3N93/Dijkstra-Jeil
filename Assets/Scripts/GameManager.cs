@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
@@ -60,9 +61,6 @@ public class GameManager : MonoBehaviour
     {
         if(obj == null) obj = this;
         else Destroy(this);
-        
-        pinput.eventRightClick += managerPathfinding.RightClick;
-        pinput.eventClick += managerPathfinding.LeftClick;
         
         managerPathfinding.gameObject.SetActive(true);
     }
@@ -128,5 +126,31 @@ public class GameManager : MonoBehaviour
     static public int GetRealLayer(LayerMask from)
     {
         return (int)Math.Log(from.value, 2);
+    }
+
+    static public List<JeilNode> GetNodes()
+    {
+        List<JeilNode> temp = new List<JeilNode>();
+        for (int i = 0; i < GameManager.obj.poolNode.transform.childCount; i++)
+        {
+            Transform child = GameManager.obj.poolNode.transform.GetChild(i);
+            JeilNode nodeFromChild = child.GetComponent<JeilNode>();
+            temp.Add(nodeFromChild);
+        }
+
+        return temp;
+    }
+    
+    static public List<JeilEdge> GetEdges()
+    {
+        List<JeilEdge> temp = new List<JeilEdge>();
+        for (int i = 0; i < GameManager.obj.poolEdge.transform.childCount; i++)
+        {
+            Transform child = GameManager.obj.poolEdge.transform.GetChild(i);
+            JeilEdge edgeFromChild = child.GetComponent<JeilEdge>();
+            temp.Add(edgeFromChild);
+        }
+
+        return temp;
     }
 }

@@ -29,7 +29,8 @@ public class PathfindingManager : MonoBehaviour
     private void OnDisable()
     {
         GameManager.obj.pinput.eventRightClick -= RightClick;
-        GameManager.obj.pinput.eventClick      -= LeftClick;
+        GameManager.obj.pinput.eventClickOn      -= LeftClickOn;
+        GameManager.obj.pinput.eventClickOff      -= LeftClickOff;
         
         ui.SetActive(false);
     }
@@ -37,7 +38,8 @@ public class PathfindingManager : MonoBehaviour
     private void OnEnable()
     {
         GameManager.obj.pinput.eventRightClick += RightClick;
-        GameManager.obj.pinput.eventClick      += LeftClick;
+        GameManager.obj.pinput.eventClickOn      += LeftClickOn;
+        GameManager.obj.pinput.eventClickOff      += LeftClickOff;
         
         GameManager.obj.state = GameManager.GameState.PathFinding;
         
@@ -49,7 +51,12 @@ public class PathfindingManager : MonoBehaviour
         Debug.Log(to);
         selectedAlgorhithm = (Algorithm)to;
     }
-    public void LeftClick()
+    
+    public void LeftClickOn()
+    {   
+    }
+
+    public void LeftClickOff()
     {   
     }
 

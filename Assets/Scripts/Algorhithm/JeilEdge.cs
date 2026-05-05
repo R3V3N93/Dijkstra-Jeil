@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine.UIElements;
 
-public class JeilEdge : MonoBehaviour
+public class JeilEdge : JeilElement
 {
     public int cost = 1;
-    private List<JeilNode> connectedNodes = new List<JeilNode>(); 
+    public List<JeilNode> connectedNodes = new List<JeilNode>(); 
 
     [HideInInspector] public LineRenderer line;
     [HideInInspector] public TMP_InputField input;
