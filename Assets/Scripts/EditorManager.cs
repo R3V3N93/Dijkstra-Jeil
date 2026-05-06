@@ -12,16 +12,22 @@ public class EditorManager : MonoBehaviour
         Connecting,
         Moving
     }
+    [SerializeField] private StatesT state = StatesT.Selecting;
+    public JeilElement selected;
     public List<JeilElement> selections = new List<JeilElement>();
     [Header("UI")] 
     public GameObject ui;
+    public GameObject menuBG;
+    public GameObject menuNode;
+    public GameObject menuEdge;
+    public Toggle menuNodeLandmarkToggle;
+    public TMP_InputField menuEdgeCostInput;
 
     [Header("Connecting")] 
     [SerializeField] private JeilNode connectStart;
     [SerializeField] private JeilNode connectEnd;
     
     [Header("Selecting")]
-    [SerializeField] private StatesT state = StatesT.Selecting;
     [SerializeField] private Rect dragRect = Rect.zero;
     [SerializeField] private bool isDragging;
     [SerializeField] private Texture2D dragImage;
@@ -55,6 +61,8 @@ public class EditorManager : MonoBehaviour
         GameManager.obj.pinput.eventDelete     -= Delete;
         
         GameManager.obj.pinput.eventCancel     -= Cancel;
+        
+        ClosePropertyMenu(true);
         
         ui.SetActive(false);
     }
@@ -95,13 +103,19 @@ public class EditorManager : MonoBehaviour
     }
     public void LeftClickOff()
     {
+        JeilElement elem = GameManager.GetElementOnMouse();
         switch (state)
         {
             case StatesT.Selecting:
                 StopDragging();
+                if (elem == null)
+                    break;
+                
+                selected = elem;
+                OpenPropertyMenu();
                 break;
             case StatesT.Connecting:
-                JeilElement elem = GameManager.GetElementOnMouse();
+                
                 if (elem == null || elem is JeilEdge)
                 {
                     connectEnd.Unhold();
@@ -223,6 +237,7 @@ public class EditorManager : MonoBehaviour
 
     public void Cancel()
     {
+        ClosePropertyMenu(true);
     }
 
     public JeilNode CreateNode(Vector2 pos, int index = -1, bool landmark = false)
@@ -270,13 +285,58 @@ public class EditorManager : MonoBehaviour
         what2.neighborEdges[what1] = edge;
     }
 
+    public void OpenPropertyMenu()
+    {
+        ClosePropertyMenu();
+        if (selected == null) return;
+        
+        menuBG.SetActive(true);
+        
+        if(selected is JeilNode)
+        {
+            menuNode.SetActive(true);
+            menuNodeLandmarkToggle.isOn = ((JeilNode)selected).visibleInPathfinding;
+        }
+        else if(selected is JeilEdge)
+        {
+            menuEdge.SetActive(true);
+            menuEdgeCostInput.text = ((JeilEdge)selected).cost.ToString();
+        }
+    }
+
+    public void ClosePropertyMenu(bool clearSelected = false)
+    {
+        if (clearSelected) selected = null;
+        menuBG.SetActive(false);
+        menuNode.SetActive(false);
+        menuEdge.SetActive(false);
+    }
+
     public void SetToStartNode()
     {
-        GameManager.obj.managerPathfinding.startNode = null;
+        if (selected is not JeilNode) return;
+        if ((JeilNode)selected == GameManager.obj.managerPathfinding.destinationNode) return;
+        GameManager.obj.managerPathfinding.startNode = (JeilNode)selected;
     }
     
     public void SetToDestinationNode()
     {
-        GameManager.obj.managerPathfinding.destinationNode = null;
+        if (selected is not JeilNode) return;
+        if ((JeilNode)selected == GameManager.obj.managerPathfinding.startNode) return;
+        GameManager.obj.managerPathfinding.destinationNode = (JeilNode)selected;
+    }
+
+    public void ToggleLandmark(bool toggle)
+    {
+        if (selected is not JeilNode) return;
+        JeilNode sel =  selected as JeilNode;
+        sel.visibleInPathfinding = toggle;
+    }
+    
+    public void SetEdgeCost(string to) // Stupid ngl. I just solely want int input.
+    {
+        if (selected is not JeilEdge) return;
+        JeilEdge sel =  selected as JeilEdge;
+        sel.SetCost(int.Parse(to));
     }
 }

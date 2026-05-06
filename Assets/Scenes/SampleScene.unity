@@ -919,13 +919,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8e6502a6b4568342bd4d789ec214df5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  state: 0
   selections: []
   ui: {fileID: 1755438156}
-  costInputField: {fileID: 737620389}
-  nodeSubMenu: {fileID: 103146534}
-  holdingStartNode: {fileID: 0}
-  holdingEndNode: {fileID: 0}
-  movingNode: {fileID: 0}
+  connectStart: {fileID: 0}
+  connectEnd: {fileID: 0}
   dragRect:
     serializedVersion: 2
     x: 0
