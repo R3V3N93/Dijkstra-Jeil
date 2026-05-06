@@ -920,8 +920,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   state: 0
+  selected: {fileID: 0}
   selections: []
   ui: {fileID: 1755438156}
+  menuBG: {fileID: 605043756}
+  menuNode: {fileID: 103146534}
+  menuEdge: {fileID: 737620389}
+  menuNodeLandmarkToggle: {fileID: 729534273}
+  menuEdgeCostInput: {fileID: 2065020507}
   connectStart: {fileID: 0}
   connectEnd: {fileID: 0}
   dragRect:
@@ -2308,8 +2314,8 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 410884620}
         m_TargetAssemblyTypeName: EditorManager, Assembly-CSharp
-        m_MethodName: UpdateSelectedNode
-        m_Mode: 1
+        m_MethodName: ToggleLandmark
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -5376,8 +5382,8 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 410884620}
         m_TargetAssemblyTypeName: EditorManager, Assembly-CSharp
-        m_MethodName: UpdateSelectedEdge
-        m_Mode: 1
+        m_MethodName: SetEdgeCost
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
