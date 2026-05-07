@@ -84,7 +84,9 @@ public class EditorManager : MonoBehaviour
     
     public void Delete()
     {
-
+        JeilElement elem = GameManager.GetElementOnMouse();
+        if(elem is JeilNode)
+            DeleteNode(elem as JeilNode);
     }
     
     public void LeftClickOn()
