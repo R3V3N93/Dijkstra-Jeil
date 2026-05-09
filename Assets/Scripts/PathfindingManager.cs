@@ -104,7 +104,38 @@ public class PathfindingManager : MonoBehaviour
 
     public void Dijkstra()
     {
+        if (startNode == null && destinationNode == null)
+        {
+            Debug.unityLogger.Log("Dijkstra: startNode or destinationNode is null");
+            return;
+        }
+
+        List<JeilNode> allNodes = GameManager.GetNodes();
+        List<JeilNode> unvisited = new List<JeilNode>();
+
+        Dictionary<JeilNode, int> distance = new Dictionary<JeilNode, int>();
+        Dictionary<JeilNode, JeilNode> previousNode = new Dictionary<JeilNode, JeilNode>();
         
+        foreach (JeilNode node in allNodes)
+        {
+            distance[node] = int.MaxValue;
+            previousNode[node] = null;
+            unvisited.Add(node);
+        }
+
+        distance[startNode] = 0;
+
+        while (unvisited.Count > 0)
+        {
+            JeilNode current = null;
+            foreach (JeilNode node in unvisited)
+            {
+                if (current == null || distance[node] < distance[current])
+                {
+                    current = node;
+                }
+            }
+        }
     }
 
     public void Astar()
