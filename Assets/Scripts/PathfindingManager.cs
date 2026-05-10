@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class PathfindingManager : MonoBehaviour
 {
@@ -99,43 +100,33 @@ public class PathfindingManager : MonoBehaviour
 
     public void BreadthFirstSearch()
     {
+        if (startNode == null && destinationNode == null)
+        {
+            Debug.Log("Dijkstra: startNode or destinationNode is null");
+            return; 
+        }
+        //시작 노드랑 끝 노드 없을때 오류 방지
+
+        List<JeilNode> allNodes = GameManager.GetNodes();
+        Queue<JeilNode> allNodeQueue = new Queue<JeilNode>();
+        allNodeQueue.Enqueue((startNode));
+        foreach (JeilNode node in allNodes)
+        {
+            if (node == startNode)
+            {
+                continue;
+            }
+            allNodeQueue.Enqueue(node);
+        }
+        //고리 큐(allNodeQueue) 할당 완료
+        //Dictionary<JeilNode, JeilNode> distance
         
+
     }
 
     public void Dijkstra()
     {
-        if (startNode == null && destinationNode == null)
-        {
-            Debug.unityLogger.Log("Dijkstra: startNode or destinationNode is null");
-            return;
-        }
-
-        List<JeilNode> allNodes = GameManager.GetNodes();
-        List<JeilNode> unvisited = new List<JeilNode>();
-
-        Dictionary<JeilNode, int> distance = new Dictionary<JeilNode, int>();
-        Dictionary<JeilNode, JeilNode> previousNode = new Dictionary<JeilNode, JeilNode>();
         
-        foreach (JeilNode node in allNodes)
-        {
-            distance[node] = int.MaxValue;
-            previousNode[node] = null;
-            unvisited.Add(node);
-        }
-
-        distance[startNode] = 0;
-
-        while (unvisited.Count > 0)
-        {
-            JeilNode current = null;
-            foreach (JeilNode node in unvisited)
-            {
-                if (current == null || distance[node] < distance[current])
-                {
-                    current = node;
-                }
-            }
-        }
     }
 
     public void Astar()
