@@ -106,21 +106,38 @@ public class PathfindingManager : MonoBehaviour
             return; 
         }
         //시작 노드랑 끝 노드 없을때 오류 방지
-
-        List<JeilNode> allNodes = GameManager.GetNodes();
+        
         Queue<JeilNode> allNodeQueue = new Queue<JeilNode>();
         allNodeQueue.Enqueue((startNode));
-        foreach (JeilNode node in allNodes)
-        {
-            if (node == startNode)
-            {
-                continue;
-            }
-            allNodeQueue.Enqueue(node);
-        }
         //고리 큐(allNodeQueue) 할당 완료
-        //Dictionary<JeilNode, JeilNode> distance
         
+        Dictionary<JeilNode, JeilNode> came_from = new Dictionary<JeilNode, JeilNode>();
+        came_from[startNode] = null;
+        //경로 설정
+        
+        while (allNodeQueue.Count > 0)
+        {
+            JeilNode currentNode = allNodeQueue.Dequeue(); // 고리 큐의 첫번째 원소를 고름
+            foreach (JeilNode neighbor in  currentNode.neighbors)// 고른 노드의 이웃 노드 중에서
+            {
+                if (neighbor == false) // 도착하지 않은 노드가 있다면, 여기 고쳐야됨!!!!!!!!!!!!!!!!!!!!!!!!!! JeilNode에 약간의 변화 필요 변수 하나 isVisited 정도?
+                {
+                    allNodeQueue.Enqueue(neighbor); // 그 노드에서 부터 다시 이웃 탐색 하기 위해 고리에 추가
+                    came_from[neighbor] = currentNode;  // 그 노드에 도착! 경로를 저장함
+                }	
+            }		
+        }	
+            
+            
+            
+            
+        /*Dictionary<JeilNode, JeilNode> come_from_reverse = new Dictionary<JeilNode, JeilNode>();
+        come_from_reverse[destinationNode] = null;
+        List<JeilNode> shortestPath = new List<JeilNode>();
+        while (currentNode != startNode)
+        {
+            
+        }*/
 
     }
 
