@@ -120,25 +120,23 @@ public class PathfindingManager : MonoBehaviour
             JeilNode currentNode = allNodeQueue.Dequeue(); // 고리 큐의 첫번째 원소를 고름
             foreach (JeilNode neighbor in  currentNode.neighbors)// 고른 노드의 이웃 노드 중에서
             {
-                if (neighbor == false) // 도착하지 않은 노드가 있다면, 여기 고쳐야됨!!!!!!!!!!!!!!!!!!!!!!!!!! JeilNode에 약간의 변화 필요 변수 하나 isVisited 정도?
+                if (!came_from.ContainsKey(neighbor)) // 도착하지 않은 노드가 있다면, 여기 고쳐야됨!!!!!!!!!!!!!!!!!!!!!!!!!! JeilNode에 약간의 변화 필요 변수 하나 isVisited 정도?
                 {
                     allNodeQueue.Enqueue(neighbor); // 그 노드에서 부터 다시 이웃 탐색 하기 위해 고리에 추가
                     came_from[neighbor] = currentNode;  // 그 노드에 도착! 경로를 저장함
                 }	
             }		
-        }	
-            
-            
-            
-            
-        /*Dictionary<JeilNode, JeilNode> come_from_reverse = new Dictionary<JeilNode, JeilNode>();
-        come_from_reverse[destinationNode] = null;
-        List<JeilNode> shortestPath = new List<JeilNode>();
-        while (currentNode != startNode)
-        {
-            
-        }*/
+        }
 
+        JeilNode sizak = destinationNode;
+        shortestPath.Add(destinationNode);
+        while (came_from[sizak] != null)
+        {
+            shortestPath.Add(came_from[sizak]);
+            sizak = came_from[sizak];
+        }
+        shortestPath.Add(startNode);
+        shortestPath.Reverse();
     }
 
     public void Dijkstra()
