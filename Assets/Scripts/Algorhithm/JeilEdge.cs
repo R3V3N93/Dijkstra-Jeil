@@ -6,8 +6,9 @@ using UnityEngine.UIElements;
 public class JeilEdge : JeilElement
 {
     public int cost = 1;
-    public List<JeilNode> connectedNodes = new List<JeilNode>(); 
-
+    public List<JeilNode> connectedNodes = new List<JeilNode>();
+    public GameObject graphics;
+    
     [HideInInspector] public LineRenderer line;
     [HideInInspector] public TMP_InputField input;
     [HideInInspector] public EdgeCollider2D col;

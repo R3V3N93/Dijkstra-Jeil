@@ -53,8 +53,16 @@ class SaveManager : MonoBehaviour
             JeilNode createdNode = editor.CreateNode(it.pos, it.index, it.isLandmark);
             
             // Assign start/destination node in advance
-            if (it.index == dataArray.startNode) pathfinding.startNode = createdNode;
-            if (it.index == dataArray.destinationNode) pathfinding.destinationNode = createdNode;
+            if (it.index == dataArray.startNode)
+            {
+                pathfinding.startNode = createdNode;
+                pathfinding.startNode.SetColour(Color.lawnGreen);
+            }
+            if (it.index == dataArray.destinationNode)
+            {
+                pathfinding.destinationNode = createdNode;
+                pathfinding.destinationNode.SetColour(Color.blue);
+            }
         }
 
         JeilNode FindNodeFromIndex(int index)

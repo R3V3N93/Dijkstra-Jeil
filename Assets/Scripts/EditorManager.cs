@@ -40,9 +40,8 @@ public class EditorManager : MonoBehaviour
             case StatesT.Selecting:
                 break;
             case StatesT.Connecting:
-                if(connectEnd != null) connectEnd.transform.position = GameManager.MousePosition();
-                break;
             case StatesT.Moving:
+                if(connectEnd != null) connectEnd.transform.position = GameManager.MousePosition();
                 break;
         }
     }
@@ -63,6 +62,8 @@ public class EditorManager : MonoBehaviour
         GameManager.obj.pinput.eventCancel     -= Cancel;
         
         ClosePropertyMenu(true);
+
+        Deselect();
         
         ui.SetActive(false);
     }
@@ -79,6 +80,16 @@ public class EditorManager : MonoBehaviour
         
         GameManager.obj.state = GameState.Editing;
         
+        foreach (JeilEdge edge in GameManager.GetEdges())
+        {
+            edge.graphics.SetActive(true);
+        }
+
+        foreach (JeilNode node in GameManager.GetNodes())
+        {
+            node.sprite.enabled = true;
+        }
+        
         ui.SetActive(true);
     }
     
@@ -87,6 +98,23 @@ public class EditorManager : MonoBehaviour
         JeilElement elem = GameManager.GetElementOnMouse();
         if(elem is JeilNode)
             DeleteNode(elem as JeilNode);
+    }
+
+    public void Select(JeilElement what)
+    {
+        if (what != null)
+        {
+            selected = what;
+            if(selected is JeilNode) ((JeilNode)selected).SetOutline(true);
+        }
+    }
+
+    public void Deselect()
+    {
+        if (selected == null) return;
+        
+        if(selected is JeilNode) ((JeilNode)selected).SetOutline(false);
+        selected = null;
     }
     
     public void LeftClickOn()
@@ -113,7 +141,8 @@ public class EditorManager : MonoBehaviour
                 if (elem == null)
                     break;
                 
-                selected = elem;
+                Deselect();
+                Select(elem);
                 OpenPropertyMenu();
                 break;
             case StatesT.Connecting:
@@ -168,6 +197,13 @@ public class EditorManager : MonoBehaviour
                         connectEnd.Hold();
                         break;
                     }
+                    else
+                    {
+                        state = StatesT.Moving;
+                        connectEnd = (JeilNode)elem;
+                        connectEnd.Hold();
+                        break;
+                    }
                     break;
                 }
                 break;
@@ -194,6 +230,9 @@ public class EditorManager : MonoBehaviour
                 }
                 break;
             case StatesT.Moving:
+                connectEnd.Unhold();
+                connectEnd = null;
+                state = StatesT.Selecting;
                 break;
         }
     }
@@ -318,14 +357,20 @@ public class EditorManager : MonoBehaviour
     {
         if (selected is not JeilNode) return;
         if ((JeilNode)selected == GameManager.obj.managerPathfinding.destinationNode) return;
+        if(GameManager.obj.managerPathfinding.startNode != null) 
+            GameManager.obj.managerPathfinding.startNode.SetColour(Color.red);
         GameManager.obj.managerPathfinding.startNode = (JeilNode)selected;
+        ((JeilNode)selected).SetColour(Color.lawnGreen);
     }
     
     public void SetToDestinationNode()
     {
         if (selected is not JeilNode) return;
         if ((JeilNode)selected == GameManager.obj.managerPathfinding.startNode) return;
+        if(GameManager.obj.managerPathfinding.destinationNode != null) 
+            GameManager.obj.managerPathfinding.destinationNode.SetColour(Color.red);
         GameManager.obj.managerPathfinding.destinationNode = (JeilNode)selected;
+        ((JeilNode)selected).SetColour(Color.blue);
     }
 
     public void ToggleLandmark(bool toggle)

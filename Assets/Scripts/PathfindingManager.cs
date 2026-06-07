@@ -43,7 +43,20 @@ public class PathfindingManager : MonoBehaviour
         GameManager.obj.pinput.eventClickOff      += LeftClickOff;
         
         GameManager.obj.state = GameState.PathFinding;
-        
+
+        foreach (JeilEdge edge in GameManager.GetEdges())
+        {
+            edge.graphics.SetActive(false);
+        }
+
+        foreach (JeilNode node in GameManager.GetNodes())
+        {
+            node.SetOutline(false);
+            if (node.visibleInPathfinding || node.IsDestinationNode() || node.IsStartNode()) continue;
+
+            node.sprite.enabled = false;
+        }
+
         ui.SetActive(true);
     }
     
