@@ -77,7 +77,7 @@ public class EditorManager : MonoBehaviour
         
         GameManager.obj.pinput.eventCancel     += Cancel;
         
-        GameManager.obj.state = GameManager.GameState.Editing;
+        GameManager.obj.state = GameState.Editing;
         
         ui.SetActive(true);
     }

@@ -42,7 +42,7 @@ public class PathfindingManager : MonoBehaviour
         GameManager.obj.pinput.eventClickOn      += LeftClickOn;
         GameManager.obj.pinput.eventClickOff      += LeftClickOff;
         
-        GameManager.obj.state = GameManager.GameState.PathFinding;
+        GameManager.obj.state = GameState.PathFinding;
         
         ui.SetActive(true);
     }

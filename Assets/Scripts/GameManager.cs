@@ -3,17 +3,19 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
+public enum GameState
+{
+    PathFinding,
+    Editing
+};
+
 public class GameManager : MonoBehaviour
 {
     static public GameManager obj;
     public InputSO pinput;
     public Camera playerCamera;
     
-    public enum GameState
-    {
-        PathFinding,
-        Editing
-    };
+    
     [Header("Program")] 
     public GameState state = GameState.PathFinding;
 
