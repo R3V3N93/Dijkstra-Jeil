@@ -81,6 +81,7 @@ public class PathfindingManager : MonoBehaviour
 
     public void StartPathFinding()
     {
+        shortestPath.Clear();
         line.positionCount = 0;
         switch (selectedAlgorhithm)
         {
@@ -107,8 +108,7 @@ public class PathfindingManager : MonoBehaviour
             line.SetPosition(i, shortestPath[i].transform.position);
         }
         
-        // Pathfinding is over. Trim the list
-        shortestPath.Clear();
+       
     }
 
     public void BreadthFirstSearch()

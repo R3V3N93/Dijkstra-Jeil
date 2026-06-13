@@ -298,6 +298,7 @@ public class EditorManager : MonoBehaviour
                 continue;
             // 후에 반드시 Destroy()으로 바뀌어야함 !!!!!!!!!!!!!!!!!!!!
             DestroyImmediate(what.neighborEdges[neighbor].gameObject);
+            neighbor.neighbors.Remove(what);
         }
         DestroyImmediate(what.gameObject);
     }
