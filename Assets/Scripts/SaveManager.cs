@@ -3,13 +3,31 @@ using System.Collections.Generic;
 using System;
 using System.Collections;
 using System.IO;
+using System.Windows.Forms;
 
 class SaveManager : MonoBehaviour
 {
-    public string fileName = "config.json";
-    public string path = Application.dataPath + "\\";
     public void Save()
     {
+        
+        SaveFileDialog dialog = new SaveFileDialog();
+        dialog.Filter = "Json File (*.json)|*.json";
+        dialog.FilterIndex = 1;
+        dialog.Title = "Select a path to save at";
+
+        string path = "";
+        DialogResult result = dialog.ShowDialog();
+
+        switch (result)
+        {
+            case DialogResult.OK:
+                path = dialog.FileName;
+                break;
+            case DialogResult.Cancel:
+                Debug.Log("Save Process canceled");
+                return;
+        }
+
         List<JeilNode> nodes = GameManager.GetNodes();
         List<JeilEdge> edges = GameManager.GetEdges();
         
@@ -25,14 +43,35 @@ class SaveManager : MonoBehaviour
         foreach(JeilEdge i in edges) dataArray.edges.Add(EdgeSaveData.Create(i));
         
         Debug.Log(JsonUtility.ToJson(dataArray, true));
-        File.WriteAllText(path + fileName, JsonUtility.ToJson(dataArray));
+        
+        File.WriteAllText(path, JsonUtility.ToJson(dataArray));
         Debug.Log("Saved config to " + path);
     }
     
     public void Load()
     {
+        OpenFileDialog dialog = new OpenFileDialog();
+        
+        dialog.Filter = "Json File (*.json)|*.json";
+        dialog.FilterIndex = 1;
+        dialog.Title = "Select a JSON file";
+
+        string file = "";
+        
+        DialogResult result = dialog.ShowDialog();
+
+        switch (result)
+        {
+            case DialogResult.OK:
+                file = dialog.FileName;
+                break;
+            case DialogResult.Cancel:
+                Debug.Log("Load Process canceled");
+                return;
+        }
+ 
         SaveData dataArray = new SaveData();
-        string _jsonRawString = File.ReadAllText(path + fileName);
+        string _jsonRawString = File.ReadAllText(file);
         
         JsonUtility.FromJsonOverwrite(_jsonRawString, dataArray);
 
