@@ -95,4 +95,9 @@ public class PriorityQueue<TElement, TPriority> where TPriority : IComparable<TP
             index = current; //바뀐 부분만 다시 진행하면 됨
         }
     }
+
+    public TElement Peek()
+    {
+        return _heap[0].element;
+    }
 }
