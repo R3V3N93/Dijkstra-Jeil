@@ -8,8 +8,7 @@ using System.Windows.Forms;
 class SaveManager : MonoBehaviour
 {
     public void Save()
-    {
-        
+    {   
         SaveFileDialog dialog = new SaveFileDialog();
         dialog.Filter = "Json File (*.json)|*.json";
         dialog.FilterIndex = 1;
@@ -37,8 +36,8 @@ class SaveManager : MonoBehaviour
         SaveData dataArray =  new SaveData();
         
         // Write all necessary stuffs to JSON
-        dataArray.startNode = (GameManager.obj.managerPathfinding.startNode != null ? GameManager.obj.managerPathfinding.startNode.index : -1);
-        dataArray.destinationNode = (GameManager.obj.managerPathfinding.destinationNode != null ? GameManager.obj.managerPathfinding.destinationNode.index : -1);
+        dataArray.startNode = (GameManager.obj.managers.pathFinding.startNode != null ? GameManager.obj.managers.pathFinding.startNode.index : -1);
+        dataArray.destinationNode = (GameManager.obj.managers.pathFinding.destinationNode != null ? GameManager.obj.managers.pathFinding.destinationNode.index : -1);
         foreach(JeilNode i in nodes) dataArray.nodes.Add(NodeSaveData.Create(i));
         foreach(JeilEdge i in edges) dataArray.edges.Add(EdgeSaveData.Create(i));
         
@@ -75,15 +74,15 @@ class SaveManager : MonoBehaviour
         
         JsonUtility.FromJsonOverwrite(_jsonRawString, dataArray);
 
-        EditorManager editor = GameManager.obj.managerEditor;
-        PathfindingManager pathfinding = GameManager.obj.managerPathfinding;
+        EditorManager editor = GameManager.obj.managers.editor;
+        PathfindingManager pathfinding = GameManager.obj.managers.pathFinding;
         
         // Remove all things from the scene
         foreach(JeilNode i in GameManager.GetNodes()) editor.DeleteNode(i);
         
-        if (GameManager.obj.poolNode.transform.childCount != 0)
+        if (GameManager.obj.pools.node.childCount != 0)
             Debug.LogError("There's something wrong with node purge process!");
-        if (GameManager.obj.poolEdge.transform.childCount != 0)
+        if (GameManager.obj.pools.edge.childCount != 0)
             Debug.LogError("There's something wrong with edge purge process!");
         
         // Create nodes first
