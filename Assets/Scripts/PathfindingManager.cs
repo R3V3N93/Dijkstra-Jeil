@@ -136,7 +136,7 @@ public class PathfindingManager : MonoBehaviour
             JeilNode currentNode = allNodeQueue.Dequeue(); // 고리 큐의 첫번째 원소를 고름
             foreach (JeilNode neighbor in  currentNode.neighbors)// 고른 노드의 이웃 노드 중에서
             {
-                if (!came_from.ContainsKey(neighbor)) // 도착하지 않은 노드가 있다면, 여기 고쳐야됨!!!!!!!!!!!!!!!!!!!!!!!!!! JeilNode에 약간의 변화 필요 변수 하나 isVisited 정도?
+                if (!came_from.ContainsKey(neighbor)) // 도착하지 않은 노드가 있다면
                 {
                     allNodeQueue.Enqueue(neighbor); // 그 노드에서 부터 다시 이웃 탐색 하기 위해 고리에 추가
                     came_from[neighbor] = currentNode;  // 그 노드에 도착! 경로를 저장함
@@ -164,7 +164,6 @@ public class PathfindingManager : MonoBehaviour
         }
         //시작 노드랑 끝 노드 없을때 오류 방지
         
-        //******************************이 이하로 아직 안만듦************************************
         PriorityQueue<JeilNode, int> frontier = new PriorityQueue<JeilNode, int>();
         frontier.Enqueue(startNode, 0);
         
@@ -179,6 +178,7 @@ public class PathfindingManager : MonoBehaviour
         while (frontier.Count > 0)
         {
             JeilNode currentNode = frontier.Peek(); // 고리 큐의 첫번째 원소를 고름
+            frontier.Dequeue(out currentNode, out _); //첫 원소 뺌
 
             if (currentNode == destinationNode) // 목적지를 진작에 찾았다면
             {
@@ -188,7 +188,7 @@ public class PathfindingManager : MonoBehaviour
             foreach(JeilNode neighbor in currentNode.neighbors) // 고른 노드의 이웃 노드 중에서
             {
                 int tempCost = cost_so_far[currentNode] + currentNode.neighborEdges[neighbor].cost;
-                if (tempCost < cost_so_far[neighbor] || !cost_so_far.ContainsKey((neighbor))) // 해당 노드까지의 비용이 계산되지 않았거나, 현재 경로가 저장된 경로보다 비용이 적다면
+                if (!cost_so_far.ContainsKey((neighbor)) || tempCost < cost_so_far[neighbor]) // 해당 노드까지의 비용이 계산되지 않았거나, 현재 경로가 저장된 경로보다 비용이 적다면
                 {
                     cost_so_far[neighbor] = tempCost;
                     frontier.Enqueue(neighbor, tempCost); // tempCost는 고리에서 탐색되는 새로운 노드의 '우선순위'를 나타내어, 큰 값이 들어가므로 PriorityQueue인 frontier에서 순서가 뒤로 밀려남.
@@ -196,16 +196,17 @@ public class PathfindingManager : MonoBehaviour
                 }
             }
             
-            JeilNode sizak = destinationNode;
-            shortestPath.Add(destinationNode);
-            while (came_from[sizak] != null)
-            {
-                shortestPath.Add(came_from[sizak]);
-                sizak = came_from[sizak];
-            }
-            shortestPath.Add(startNode);
-            shortestPath.Reverse();
         }
+        
+        JeilNode sizak = destinationNode;
+        shortestPath.Add(destinationNode);
+        while (came_from[sizak] != null)
+        {
+            shortestPath.Add(came_from[sizak]);
+            sizak = came_from[sizak];
+        }
+        shortestPath.Add(startNode);
+        shortestPath.Reverse();
             
 
     }
