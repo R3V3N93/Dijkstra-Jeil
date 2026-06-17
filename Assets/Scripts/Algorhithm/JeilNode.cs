@@ -12,12 +12,12 @@ public class JeilNode : JeilElement
 
     public bool IsStartNode()
     {
-        return GameManager.obj.managerPathfinding.startNode == this;
+        return GameManager.obj.managers.pathFinding.startNode == this;
     }
     
     public bool IsDestinationNode()
     {
-        return GameManager.obj.managerPathfinding.destinationNode == this;
+        return GameManager.obj.managers.pathFinding.destinationNode == this;
     }
     
     public void SetColour(Color to)
@@ -33,13 +33,13 @@ public class JeilNode : JeilElement
     
     public void Hold()
     {
-        gameObject.layer = GameManager.GetRealLayer(GameManager.obj.layerNodeHeld);
+        gameObject.layer = GameManager.GetRealLayer(GameManager.obj.layers.nodeHeld);
         SetOutline(true);
     }
     
     public void Unhold()
     {
-        gameObject.layer = GameManager.GetRealLayer(GameManager.obj.layerNode);
+        gameObject.layer = GameManager.GetRealLayer(GameManager.obj.layers.node);
         SetOutline(false);
     }
 }
