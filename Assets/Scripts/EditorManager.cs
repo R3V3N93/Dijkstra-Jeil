@@ -281,6 +281,7 @@ public class EditorManager : MonoBehaviour
     }
 
     public JeilNode CreateNode(Vector2 pos, int index = -1, bool landmark = false)
+    public JeilNode CreateNode(Vector2 pos, int index = -1, bool landmark = false, int layer = 0)
     {   
         JeilNode product = Instantiate(GameManager.obj.prefabs.node, pos, Quaternion.identity, GameManager.obj.pools.node.transform).GetComponent<JeilNode>();
         if(index != -1 && index >= 0)

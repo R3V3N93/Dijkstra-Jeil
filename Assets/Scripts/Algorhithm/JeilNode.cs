@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class JeilNode : JeilElement
 {
     public int index = -1;
+    public uint layer;
     public List<JeilNode> neighbors = new List<JeilNode>();
     public Dictionary<JeilNode, JeilEdge> neighborEdges = new Dictionary<JeilNode, JeilEdge>();
     public GameObject outline;
