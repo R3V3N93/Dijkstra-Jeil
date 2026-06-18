@@ -280,13 +280,13 @@ public class EditorManager : MonoBehaviour
         ClosePropertyMenu(true);
     }
 
-    public JeilNode CreateNode(Vector2 pos, int index = -1, bool landmark = false)
     public JeilNode CreateNode(Vector2 pos, int index = -1, bool landmark = false, int layer = 0)
     {   
         JeilNode product = Instantiate(GameManager.obj.prefabs.node, pos, Quaternion.identity, GameManager.obj.pools.node.transform).GetComponent<JeilNode>();
         if(index != -1 && index >= 0)
             product.index = index;
         product.visibleInPathfinding = landmark;
+        product.layer = (uint)layer;
         return product;
     }
 
@@ -303,7 +303,7 @@ public class EditorManager : MonoBehaviour
         DestroyImmediate(what.gameObject);
     }
     
-    public void ConnectNodes(JeilNode what1, JeilNode what2, int cost = 1)
+    public void ConnectNodes(JeilNode what1, JeilNode what2, int cost = 1, bool visible = true)
     {
         Debug.Log("Connecting from what1 to what2 ");
         if(!what1 || !what2)
@@ -323,6 +323,7 @@ public class EditorManager : MonoBehaviour
         JeilEdge edge = _edge.GetComponent<JeilEdge>();
         edge.SetCost(cost);
         edge.ConnectNodes(what1, what2);
+        edge.visibleInPathfinding = visible;
         what1.neighborEdges[what2] = edge;
         what2.neighborEdges[what1] = edge;
     }

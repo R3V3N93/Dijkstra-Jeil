@@ -88,7 +88,7 @@ class SaveManager : MonoBehaviour
         // Create nodes first
         foreach (NodeSaveData it in dataArray.nodes)
         {
-            JeilNode createdNode = editor.CreateNode(it.pos, it.index, it.isLandmark);
+            JeilNode createdNode = editor.CreateNode(it.pos, it.index, it.isLandmark, it.layer);
             
             // Assign start/destination node in advance
             if (it.index == dataArray.startNode)
@@ -111,7 +111,7 @@ class SaveManager : MonoBehaviour
         
         foreach (EdgeSaveData it in dataArray.edges)
         {
-            editor.ConnectNodes(FindNodeFromIndex(it.indexL), FindNodeFromIndex(it.indexR), it.cost);
+            editor.ConnectNodes(FindNodeFromIndex(it.indexL), FindNodeFromIndex(it.indexR), it.cost, it.isVisible);
         }
     }
 }
@@ -129,6 +129,7 @@ public class SaveData
 public class NodeSaveData
 {
     [SerializeField] public int index;
+    [SerializeField] public int layer;
     [SerializeField] public Vector2 pos;
     [SerializeField] public bool isLandmark;
 
@@ -137,6 +138,7 @@ public class NodeSaveData
         NodeSaveData data = new NodeSaveData();
         data.pos = from.transform.position;
         data.index = from.index;
+        data.layer = (int)from.layer;
         data.isLandmark = from.visibleInPathfinding;
         return data;
     }
@@ -148,12 +150,14 @@ public class EdgeSaveData
     [SerializeField] public int indexL;
     [SerializeField] public int indexR;
     [SerializeField] public int cost;
+    [SerializeField] public bool isVisible;
     static public EdgeSaveData Create(JeilEdge from)
     {
         EdgeSaveData data = new EdgeSaveData();
         data.indexL = from.connectedNodes[0].index;
         data.indexR = from.connectedNodes[1].index;
         data.cost = from.cost;
+        data.isVisible = from.visibleInPathfinding;
         return data;
     }
 }
