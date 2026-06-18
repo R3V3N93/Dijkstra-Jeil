@@ -1238,12 +1238,10 @@ MonoBehaviour:
   selected: {fileID: 0}
   selections: []
   ui: {fileID: 1755438156}
-  menuBG: {fileID: 605043756}
-  menuNode: {fileID: 103146534}
-  menuEdge: {fileID: 737620389}
-  menuNodeLandmarkToggle: {fileID: 729534273}
-  menuEdgeVisibilityToggle: {fileID: 641842882}
-  menuEdgeCostInput: {fileID: 2065020507}
+  menu:
+    bg: {fileID: 605043756}
+    node: {fileID: 103146536}
+    edge: {fileID: 737620391}
   connectStart: {fileID: 0}
   connectEnd: {fileID: 0}
   dragRect:
