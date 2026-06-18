@@ -21,6 +21,7 @@ public class EditorManager : MonoBehaviour
     public GameObject menuNode;
     public GameObject menuEdge;
     public Toggle menuNodeLandmarkToggle;
+    public Toggle menuEdgeVisibilityToggle;
     public TMP_InputField menuEdgeCostInput;
 
     [Header("Connecting")] 
@@ -343,6 +344,7 @@ public class EditorManager : MonoBehaviour
         {
             menuEdge.SetActive(true);
             menuEdgeCostInput.text = ((JeilEdge)selected).cost.ToString();
+            menuEdgeVisibilityToggle.isOn = ((JeilEdge)selected).visibleInPathfinding;
         }
     }
 
@@ -378,6 +380,13 @@ public class EditorManager : MonoBehaviour
     {
         if (selected is not JeilNode) return;
         JeilNode sel =  selected as JeilNode;
+        sel.visibleInPathfinding = toggle;
+    }
+
+    public void ToggleEdgeVisibility(bool toggle)
+    {
+        if (selected is not JeilEdge) return;
+        JeilEdge sel =  selected as JeilEdge;
         sel.visibleInPathfinding = toggle;
     }
     

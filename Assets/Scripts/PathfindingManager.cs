@@ -23,11 +23,11 @@ public class PathfindingManager : MonoBehaviour
     [Header("Debug")]
     [SerializeField] List<JeilNode> shortestPath = new List<JeilNode>();
 
-    [SerializeField] private LineRenderer line;
+    public LineRenderer linePrefab;
+    public List<LineRenderer> activeLines;
 
     void Awake()
     {
-        line = GetComponent<LineRenderer>();
     }
     
     private void OnDisable()
@@ -85,7 +85,8 @@ public class PathfindingManager : MonoBehaviour
     public void StartPathFinding()
     {
         shortestPath.Clear();
-        line.positionCount = 0;
+        foreach(LineRenderer i in activeLines) DestroyImmediate(i.gameObject);
+        activeLines.Clear();
         switch (selectedAlgorhithm)
         {
             case Algorithm.BreadthFirstSearch:
@@ -105,10 +106,17 @@ public class PathfindingManager : MonoBehaviour
             return;
         }
 
-        line.positionCount = shortestPath.Count;
+        activeLines.Add(Instantiate(linePrefab, this.transform));  
         for (int i = 0; i < shortestPath.Count; i++)
         {
-            line.SetPosition(i, shortestPath[i].transform.position);
+            int lineIndex = activeLines.Count - 1;
+            activeLines[lineIndex].positionCount++;
+            activeLines[lineIndex].SetPosition(activeLines[lineIndex].positionCount-1, shortestPath[i].transform.position);
+            if(i < shortestPath.Count-1 && !shortestPath[i].neighborEdges[shortestPath[i+1]].visibleInPathfinding)
+            {
+                lineIndex++;
+                activeLines.Add(Instantiate(linePrefab, this.transform));  
+            }
         }
         
        
@@ -151,7 +159,6 @@ public class PathfindingManager : MonoBehaviour
             shortestPath.Add(came_from[sizak]);
             sizak = came_from[sizak];
         }
-        shortestPath.Add(startNode);
         shortestPath.Reverse();
     }
 
@@ -205,7 +212,6 @@ public class PathfindingManager : MonoBehaviour
             shortestPath.Add(came_from[sizak]);
             sizak = came_from[sizak];
         }
-        shortestPath.Add(startNode);
         shortestPath.Reverse();
             
 
