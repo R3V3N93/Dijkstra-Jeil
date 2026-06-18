@@ -4,6 +4,44 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
+[Serializable]
+public class PropertyMenu
+{
+    public GameObject bg; // Also is a root
+    public NodePropertyMenu node;
+    public EdgePropertyMenu edge;
+
+    public void CloseAll()
+    {
+        bg.SetActive(false);
+        node.gameObject.SetActive(false);
+        edge.gameObject.SetActive(false);
+    }
+
+    public void ActivateFrom(JeilElement from)
+    {
+        CloseAll();
+        if(from == null) return;
+
+        bg.SetActive(true); 
+        
+        if(from is JeilNode)
+        {
+            JeilNode fromNode = (JeilNode)from;
+            node.gameObject.SetActive(true);
+            node.landmarkToggle.isOn = fromNode.visibleInPathfinding;
+            node.layerInput.text = fromNode.layer.ToString();
+        }
+        else if(from is JeilEdge)
+        {
+            JeilEdge fromEdge = (JeilEdge)from;
+            edge.gameObject.SetActive(true);
+            edge.costInput.text = fromEdge.cost.ToString();
+            edge.visibilityToggle.isOn = fromEdge.visibleInPathfinding;
+        }
+    }
+}
+
 public class EditorManager : MonoBehaviour
 {
     enum StatesT
@@ -17,12 +55,7 @@ public class EditorManager : MonoBehaviour
     public List<JeilElement> selections = new List<JeilElement>();
     [Header("UI")] 
     public GameObject ui;
-    public GameObject menuBG;
-    public GameObject menuNode;
-    public GameObject menuEdge;
-    public Toggle menuNodeLandmarkToggle;
-    public Toggle menuEdgeVisibilityToggle;
-    public TMP_InputField menuEdgeCostInput;
+    public PropertyMenu menu;
 
     [Header("Connecting")] 
     [SerializeField] private JeilNode connectStart;
@@ -330,30 +363,13 @@ public class EditorManager : MonoBehaviour
 
     public void OpenPropertyMenu()
     {
-        ClosePropertyMenu();
-        if (selected == null) return;
-        
-        menuBG.SetActive(true);
-        
-        if(selected is JeilNode)
-        {
-            menuNode.SetActive(true);
-            menuNodeLandmarkToggle.isOn = ((JeilNode)selected).visibleInPathfinding;
-        }
-        else if(selected is JeilEdge)
-        {
-            menuEdge.SetActive(true);
-            menuEdgeCostInput.text = ((JeilEdge)selected).cost.ToString();
-            menuEdgeVisibilityToggle.isOn = ((JeilEdge)selected).visibleInPathfinding;
-        }
+        menu.ActivateFrom(selected);
     }
 
     public void ClosePropertyMenu(bool clearSelected = false)
     {
         if (clearSelected) selected = null;
-        menuBG.SetActive(false);
-        menuNode.SetActive(false);
-        menuEdge.SetActive(false);
+        menu.CloseAll();
     }
 
     public void SetToStartNode()
