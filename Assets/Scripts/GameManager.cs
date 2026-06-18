@@ -53,6 +53,7 @@ public class GameManager : MonoBehaviour
         if (state == GameState.PathFinding)
         {
             managers.editor.gameObject.SetActive(true);
+            managers.pathFinding.ClearPath();
             managers.pathFinding.gameObject.SetActive(false);
         }
         else

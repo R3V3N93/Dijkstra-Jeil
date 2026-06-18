@@ -82,11 +82,16 @@ public class PathfindingManager : MonoBehaviour
         
     }
 
-    public void StartPathFinding()
+    public void ClearPath()
     {
         shortestPath.Clear();
         foreach(LineRenderer i in activeLines) DestroyImmediate(i.gameObject);
         activeLines.Clear();
+    }
+
+    public void StartPathFinding()
+    {
+        ClearPath();
         switch (selectedAlgorhithm)
         {
             case Algorithm.BreadthFirstSearch:
