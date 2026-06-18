@@ -9,36 +9,40 @@ public enum GameState
     Editing
 };
 
+[Serializable]
+public struct PoolsT
+{
+    public Transform node;
+    public Transform edge;
+}
+[Serializable]
+public struct ManagerT
+{
+    public EditorManager editor;
+    public PathfindingManager pathFinding;
+}
+
 public class GameManager : MonoBehaviour
 {
     static public GameManager obj;
     public InputSO pinput;
     public Camera playerCamera;
-    
+
+    [Header("Data")]
+    public LayerSO layers;
+    public PrefabSO prefabs;
     
     [Header("Program")] 
     public GameState state = GameState.PathFinding;
-
-    [Header("Prefabs")] public GameObject prefabNode;
-    public GameObject prefabEdge;
     
-    [Header("Pools")]
-    public GameObject poolNode;
-    public GameObject poolEdge;
+    [Header("Pointers")]
+    public PoolsT pools;
+    public ManagerT managers;
     
     [Header("Settings")] 
     [Tooltip("Max amount to scroll in orthographic")]
     [SerializeField] private uint maxScroll = 50;
     [SerializeField] private float panningSpeed = 0.05f;
-    
-    [Header("Layers")]
-    public LayerMask layerNode;
-    public LayerMask layerNodeHeld;
-    public LayerMask layerEdge;
-
-    [Header("Managers")] 
-    public EditorManager managerEditor;
-    public PathfindingManager managerPathfinding;
 
     [Header("Debug")] 
     [SerializeField] private List<GameObject> undoBuffer;
@@ -48,13 +52,13 @@ public class GameManager : MonoBehaviour
     {
         if (state == GameState.PathFinding)
         {
-            managerEditor.gameObject.SetActive(true);
-            managerPathfinding.gameObject.SetActive(false);
+            managers.editor.gameObject.SetActive(true);
+            managers.pathFinding.gameObject.SetActive(false);
         }
         else
         {
-            managerPathfinding.gameObject.SetActive(true);
-            managerEditor.gameObject.SetActive(false);
+            managers.pathFinding.gameObject.SetActive(true);
+            managers.editor.gameObject.SetActive(false);
         }
         Debug.Log("Toggled state");
     }
@@ -64,7 +68,7 @@ public class GameManager : MonoBehaviour
         if(obj == null) obj = this;
         else Destroy(this);
         
-        managerPathfinding.gameObject.SetActive(true);
+        managers.pathFinding.gameObject.SetActive(true);
     }
 
     void Update()
@@ -112,7 +116,7 @@ public class GameManager : MonoBehaviour
 
     static public JeilElement GetElementOnMouse()
     {
-        Collider2D raycasted = Physics2D.OverlapPoint(MousePosition(), obj.layerNode|obj.layerEdge);
+        Collider2D raycasted = Physics2D.OverlapPoint(MousePosition(), obj.layers.node|obj.layers.edge);
         if (raycasted != null)
         {
             JeilElement element = raycasted.gameObject.GetComponent<JeilElement>();
@@ -129,9 +133,9 @@ public class GameManager : MonoBehaviour
     static public List<JeilNode> GetNodes()
     {
         List<JeilNode> temp = new List<JeilNode>();
-        for (int i = 0; i < GameManager.obj.poolNode.transform.childCount; i++)
+        for (int i = 0; i < GameManager.obj.pools.node.childCount; i++)
         {
-            Transform child = GameManager.obj.poolNode.transform.GetChild(i);
+            Transform child = GameManager.obj.pools.node.GetChild(i);
             JeilNode nodeFromChild = child.GetComponent<JeilNode>();
             temp.Add(nodeFromChild);
         }
@@ -142,9 +146,9 @@ public class GameManager : MonoBehaviour
     static public List<JeilEdge> GetEdges()
     {
         List<JeilEdge> temp = new List<JeilEdge>();
-        for (int i = 0; i < GameManager.obj.poolEdge.transform.childCount; i++)
+        for (int i = 0; i < GameManager.obj.pools.edge.childCount; i++)
         {
-            Transform child = GameManager.obj.poolEdge.transform.GetChild(i);
+            Transform child = GameManager.obj.pools.edge.GetChild(i);
             JeilEdge edgeFromChild = child.GetComponent<JeilEdge>();
             temp.Add(edgeFromChild);
         }

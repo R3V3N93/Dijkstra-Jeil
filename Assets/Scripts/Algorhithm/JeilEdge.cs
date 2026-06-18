@@ -8,6 +8,7 @@ public class JeilEdge : JeilElement
     public int cost = 1;
     public List<JeilNode> connectedNodes = new List<JeilNode>();
     public GameObject graphics;
+    public bool visibleInPathfinding = true;
     
     [HideInInspector] public LineRenderer line;
     [HideInInspector] public TMP_InputField input;

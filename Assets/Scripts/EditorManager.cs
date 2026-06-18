@@ -21,6 +21,7 @@ public class EditorManager : MonoBehaviour
     public GameObject menuNode;
     public GameObject menuEdge;
     public Toggle menuNodeLandmarkToggle;
+    public Toggle menuEdgeVisibilityToggle;
     public TMP_InputField menuEdgeCostInput;
 
     [Header("Connecting")] 
@@ -259,10 +260,10 @@ public class EditorManager : MonoBehaviour
 
         if (dragRect.width * dragRect.height < 100)
         {
-            Collider2D raycasted = Physics2D.OverlapPoint(GameManager.MousePosition(), GameManager.obj.layerEdge|GameManager.obj.layerNode);
+            Collider2D raycasted = Physics2D.OverlapPoint(GameManager.MousePosition(), GameManager.obj.layers.edge|GameManager.obj.layers.node);
             if (raycasted != null)
             {
-                if (raycasted.gameObject.layer == GameManager.GetRealLayer(GameManager.obj.layerEdge))
+                if (raycasted.gameObject.layer == GameManager.GetRealLayer(GameManager.obj.layers.edge))
                 {
                     
                 }
@@ -283,7 +284,7 @@ public class EditorManager : MonoBehaviour
 
     public JeilNode CreateNode(Vector2 pos, int index = -1, bool landmark = false)
     {   
-        JeilNode product = Instantiate(GameManager.obj.prefabNode, pos, Quaternion.identity, GameManager.obj.poolNode.transform).GetComponent<JeilNode>();
+        JeilNode product = Instantiate(GameManager.obj.prefabs.node, pos, Quaternion.identity, GameManager.obj.pools.node.transform).GetComponent<JeilNode>();
         if(index != -1 && index >= 0)
             product.index = index;
         product.visibleInPathfinding = landmark;
@@ -315,10 +316,10 @@ public class EditorManager : MonoBehaviour
         what1.neighbors.Add(what2);
         what2.neighbors.Add(what1);
         
-        what1.gameObject.layer = GameManager.GetRealLayer(GameManager.obj.layerNode);
-        what2.gameObject.layer = GameManager.GetRealLayer(GameManager.obj.layerNode);
+        what1.gameObject.layer = GameManager.GetRealLayer(GameManager.obj.layers.node);
+        what2.gameObject.layer = GameManager.GetRealLayer(GameManager.obj.layers.node);
 
-        GameObject _edge = Instantiate(GameManager.obj.prefabEdge, (what1.transform.position + what2.transform.position) / 2, Quaternion.identity, GameManager.obj.poolEdge.transform);
+        GameObject _edge = Instantiate(GameManager.obj.prefabs.edge, (what1.transform.position + what2.transform.position) / 2, Quaternion.identity, GameManager.obj.pools.edge.transform);
 
         JeilEdge edge = _edge.GetComponent<JeilEdge>();
         edge.SetCost(cost);
@@ -343,6 +344,7 @@ public class EditorManager : MonoBehaviour
         {
             menuEdge.SetActive(true);
             menuEdgeCostInput.text = ((JeilEdge)selected).cost.ToString();
+            menuEdgeVisibilityToggle.isOn = ((JeilEdge)selected).visibleInPathfinding;
         }
     }
 
@@ -357,20 +359,20 @@ public class EditorManager : MonoBehaviour
     public void SetToStartNode()
     {
         if (selected is not JeilNode) return;
-        if ((JeilNode)selected == GameManager.obj.managerPathfinding.destinationNode) return;
-        if(GameManager.obj.managerPathfinding.startNode != null) 
-            GameManager.obj.managerPathfinding.startNode.SetColour(Color.red);
-        GameManager.obj.managerPathfinding.startNode = (JeilNode)selected;
+        if ((JeilNode)selected == GameManager.obj.managers.pathFinding.destinationNode) return;
+        if(GameManager.obj.managers.pathFinding.startNode != null) 
+            GameManager.obj.managers.pathFinding.startNode.SetColour(Color.red);
+        GameManager.obj.managers.pathFinding.startNode = (JeilNode)selected;
         ((JeilNode)selected).SetColour(Color.lawnGreen);
     }
     
     public void SetToDestinationNode()
     {
         if (selected is not JeilNode) return;
-        if ((JeilNode)selected == GameManager.obj.managerPathfinding.startNode) return;
-        if(GameManager.obj.managerPathfinding.destinationNode != null) 
-            GameManager.obj.managerPathfinding.destinationNode.SetColour(Color.red);
-        GameManager.obj.managerPathfinding.destinationNode = (JeilNode)selected;
+        if ((JeilNode)selected == GameManager.obj.managers.pathFinding.startNode) return;
+        if(GameManager.obj.managers.pathFinding.destinationNode != null) 
+            GameManager.obj.managers.pathFinding.destinationNode.SetColour(Color.red);
+        GameManager.obj.managers.pathFinding.destinationNode = (JeilNode)selected;
         ((JeilNode)selected).SetColour(Color.blue);
     }
 
@@ -378,6 +380,13 @@ public class EditorManager : MonoBehaviour
     {
         if (selected is not JeilNode) return;
         JeilNode sel =  selected as JeilNode;
+        sel.visibleInPathfinding = toggle;
+    }
+
+    public void ToggleEdgeVisibility(bool toggle)
+    {
+        if (selected is not JeilEdge) return;
+        JeilEdge sel =  selected as JeilEdge;
         sel.visibleInPathfinding = toggle;
     }
     
