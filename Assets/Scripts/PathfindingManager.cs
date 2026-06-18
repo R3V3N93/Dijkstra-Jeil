@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using System;
-
+using UnityEngine.UIElements;
 
 
 public class PathfindingManager : MonoBehaviour
@@ -218,12 +218,68 @@ public class PathfindingManager : MonoBehaviour
             sizak = came_from[sizak];
         }
         shortestPath.Reverse();
-            
-
     }
 
     public void Astar()
     {
+        if (startNode == null || destinationNode == null)
+        {
+            Debug.Log("Dijkstra: startNode or destinationNode is null");
+            return; 
+        }
+        //시작 노드랑 끝 노드 없을때 오류 방지
         
+        PriorityQueue<JeilNode, int> frontier = new PriorityQueue<JeilNode, int>();
+        frontier.Enqueue(startNode, 0);
+        
+        // cost_so_far은 특정 노드까지 도달하는데 거친 비용을 합한 값을 저장한다.
+        // 예를 들어 시작 노드에서 노드B까지 가는데 비용이 각각 1, 3, 5가 소요된다면,
+        // cost_so_far[노드B]는 1+3+5=9가 된다.
+        Dictionary<JeilNode, int> cost_so_far = new Dictionary<JeilNode, int>();
+        cost_so_far[startNode] = 0;
+        Dictionary<JeilNode, JeilNode> came_from = new Dictionary<JeilNode, JeilNode>();
+        came_from[startNode] = null;
+
+        while (frontier.Count > 0)
+        {
+            JeilNode currentNode = frontier.Peek(); // 고리 큐의 첫번째 원소를 고름
+            frontier.Dequeue(out currentNode, out _); //첫 원소 뺌
+
+            if (currentNode == destinationNode) // 목적지를 진작에 찾았다면
+            {
+                break; // 조기 이탈!
+            }
+            
+            foreach(JeilNode neighbor in currentNode.neighbors) // 고른 노드의 이웃 노드 중에서
+            {
+                int tempCost = cost_so_far[currentNode] + currentNode.neighborEdges[neighbor].cost;
+                if (!cost_so_far.ContainsKey((neighbor)) || tempCost < cost_so_far[neighbor]) // 해당 노드까지의 비용이 계산되지 않았거나, 현재 경로가 저장된 경로보다 비용이 적다면
+                {
+                    cost_so_far[neighbor] = tempCost;
+                    
+                    //한줄 추가!!
+                    int priority = tempCost + Heuristic(neighbor.transform.position, destinationNode.transform.position, neighbor.layer, destinationNode.layer);
+                    
+                    frontier.Enqueue(neighbor, priority); // tempCost는 고리에서 탐색되는 새로운 노드의 '우선순위'를 나타내어, 큰 값이 들어가므로 PriorityQueue인 frontier에서 순서가 뒤로 밀려남.
+                    came_from[neighbor] = currentNode;  // 그 노드에 도착! 경로를 저장함
+                }
+            }
+            
+        }
+        
+        JeilNode sizak = destinationNode;
+        shortestPath.Add(destinationNode);
+        while (came_from[sizak] != null)
+        {
+            shortestPath.Add(came_from[sizak]);
+            sizak = came_from[sizak];
+        }
+        shortestPath.Reverse();
+    }
+    
+    private int Heuristic(Vector2 neighborNode, Vector2 destinationNode, uint neighborLayer, uint destinationLayer)
+    {
+        int temp = (int)(Mathf.Abs(neighborNode.x-destinationNode.x)+Mathf.Abs(neighborNode.y-destinationNode.y) + 2*Mathf.Abs((int)destinationLayer-(int)neighborLayer));
+        return temp;
     }
 }
