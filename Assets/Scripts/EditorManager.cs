@@ -196,14 +196,12 @@ public class EditorManager : MonoBehaviour
                         connectStart = (JeilNode)elem;
                         connectEnd = CreateNode(GameManager.MousePosition());
                         connectEnd.Hold();
-                        break;
                     }
                     else
                     {
                         state = StatesT.Moving;
                         connectEnd = (JeilNode)elem;
                         connectEnd.Hold();
-                        break;
                     }
                     break;
                 }
