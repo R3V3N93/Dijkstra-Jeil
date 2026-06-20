@@ -14,8 +14,8 @@ public class PropertyMenu
     public void CloseAll()
     {
         bg.SetActive(false);
-        node.gameObject.SetActive(false);
-        edge.gameObject.SetActive(false);
+        node.Disable();
+        edge.Disable();
     }
 
     public void ActivateFrom(JeilElement from)
@@ -28,14 +28,14 @@ public class PropertyMenu
         if(from is JeilNode)
         {
             JeilNode fromNode = (JeilNode)from;
-            node.gameObject.SetActive(true);
+            node.Activate();
             node.landmarkToggle.isOn = fromNode.visibleInPathfinding;
             node.layerInput.text = fromNode.layer.ToString();
         }
         else if(from is JeilEdge)
         {
             JeilEdge fromEdge = (JeilEdge)from;
-            edge.gameObject.SetActive(true);
+            edge.Activate();
             edge.costInput.text = fromEdge.cost.ToString();
             edge.visibilityToggle.isOn = fromEdge.visibleInPathfinding;
         }
