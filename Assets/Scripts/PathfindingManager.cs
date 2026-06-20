@@ -2,8 +2,15 @@ using UnityEngine;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using System;
+using System.Diagnostics;
 using UnityEngine.UIElements;
 
+[Serializable]
+public struct TimerInfo
+{
+    public float lastAlgorithm;
+    public float estimatedRealTime;
+}
 
 public class PathfindingManager : MonoBehaviour
 {
@@ -20,7 +27,7 @@ public class PathfindingManager : MonoBehaviour
     public JeilNode destinationNode;
     [SerializeField] Algorithm selectedAlgorhithm = Algorithm.BreadthFirstSearch;
 
-    [Header("Debug")]
+    [Header("UnityEngine.Debug")]
     [SerializeField] List<JeilNode> shortestPath = new List<JeilNode>();
 
     public LineRenderer linePrefab;
@@ -65,10 +72,10 @@ public class PathfindingManager : MonoBehaviour
     
     public void SetAlgorithm(int to)
     {
-        Debug.Log(to);
+        UnityEngine.Debug.Log(to);
         selectedAlgorhithm = (Algorithm)to;
     }
-    
+
     public void LeftClickOn()
     {   
     }
@@ -92,6 +99,8 @@ public class PathfindingManager : MonoBehaviour
     public void StartPathFinding()
     {
         ClearPath();
+        Stopwatch watch = new Stopwatch();
+        watch.Start();
         switch (selectedAlgorhithm)
         {
             case Algorithm.BreadthFirstSearch:
@@ -107,7 +116,7 @@ public class PathfindingManager : MonoBehaviour
 
         if (shortestPath.Count == 0)
         {
-            Debug.LogError("Something's wrong with Algorhithm execution. Check log.");
+            UnityEngine.Debug.LogError("Something's wrong with Algorhithm execution. Check log.");
             return;
         }
 
@@ -123,15 +132,16 @@ public class PathfindingManager : MonoBehaviour
                 activeLines.Add(Instantiate(linePrefab, this.transform));  
             }
         }
-        
-       
+
+        watch.Stop();
+        UnityEngine.Debug.Log("Algorithm Execution complete. Elapsed Time : " + watch.ElapsedMilliseconds);
     }
 
     public void BreadthFirstSearch()
     {
         if (startNode == null || destinationNode == null)
         {
-            Debug.Log("BreadthFirstSearch: startNode or destinationNode is null");
+            UnityEngine.Debug.Log("BreadthFirstSearch: startNode or destinationNode is null");
             return; 
         }
         //시작 노드랑 끝 노드 없을때 오류 방지
@@ -171,7 +181,7 @@ public class PathfindingManager : MonoBehaviour
     {
         if (startNode == null || destinationNode == null)
         {
-            Debug.Log("Dijkstra: startNode or destinationNode is null");
+            UnityEngine.Debug.Log("Dijkstra: startNode or destinationNode is null");
             return; 
         }
         //시작 노드랑 끝 노드 없을때 오류 방지
@@ -224,7 +234,7 @@ public class PathfindingManager : MonoBehaviour
     {
         if (startNode == null || destinationNode == null)
         {
-            Debug.Log("Dijkstra: startNode or destinationNode is null");
+            UnityEngine.Debug.Log("Dijkstra: startNode or destinationNode is null");
             return; 
         }
         //시작 노드랑 끝 노드 없을때 오류 방지
