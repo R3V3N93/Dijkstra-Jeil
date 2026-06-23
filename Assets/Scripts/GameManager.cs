@@ -42,11 +42,10 @@ public class GameManager : MonoBehaviour
     [Header("Settings")] 
     [Tooltip("Max amount to scroll in orthographic")]
     [SerializeField] private uint maxScroll = 50;
-    [SerializeField] private float panningSpeed = 0.05f;
 
     [Header("Debug")] 
     [SerializeField] private List<GameObject> undoBuffer;
-    public Vector2 mousePositionOld;
+    public Vector2 oldMousePos;
 
     public void ToggleState()
     {
@@ -77,10 +76,7 @@ public class GameManager : MonoBehaviour
         Scroll();
         Panning();
 
-        if (!pinput.shift)
-        {
-            mousePositionOld = pinput.mousePosition;
-        }
+        oldMousePos = MousePosition();
     }
     
     void Scroll()
@@ -96,8 +92,11 @@ public class GameManager : MonoBehaviour
     {
         if (pinput.middleClicked)
         {
-            playerCamera.transform.position += -new Vector3(pinput.mouseDelta.x, pinput.mouseDelta.y, 0) * panningSpeed;
+            Vector3 dPos = MousePosition() - oldMousePos;
+            playerCamera.transform.position -= dPos;
+            
         }
+        
     }
 
     static public Vector2 Screen2World(Vector2 from)
