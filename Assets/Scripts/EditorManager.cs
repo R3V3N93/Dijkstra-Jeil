@@ -4,6 +4,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
+public enum SelectionModeT
+{
+    Node,
+    Edge
+};
+
 [Serializable]
 public class PropertyMenu
 {
@@ -13,31 +19,28 @@ public class PropertyMenu
 
     public void CloseAll()
     {
-        bg.SetActive(false);
+        if(bg) bg.SetActive(false);
         node.Disable();
         edge.Disable();
     }
+    
+    
 
-    public void ActivateFrom(JeilElement from)
+    public void Activate(SelectionModeT mode, List<JeilElement> selections)
     {
         CloseAll();
-        if(from == null) return;
+        if(selections.Count == 0) return;
 
-        bg.SetActive(true); 
+        bg.SetActive(true);
         
-        if(from is JeilNode)
+        switch (mode)
         {
-            JeilNode fromNode = (JeilNode)from;
-            node.Activate();
-            node.landmarkToggle.isOn = fromNode.visibleInPathfinding;
-            node.layerInput.text = fromNode.layer.ToString();
-        }
-        else if(from is JeilEdge)
-        {
-            JeilEdge fromEdge = (JeilEdge)from;
-            edge.Activate();
-            edge.costInput.text = fromEdge.cost.ToString();
-            edge.visibilityToggle.isOn = fromEdge.visibleInPathfinding;
+            case SelectionModeT.Node:
+                node.Activate(selections);
+                break;
+            case SelectionModeT.Edge:
+                edge.Activate(selections);
+                break;
         }
     }
 }
@@ -49,9 +52,10 @@ public class EditorManager : MonoBehaviour
         Selecting,
         Connecting,
         Moving
-    }
+    };
+    
+    [SerializeField] private SelectionModeT selectionMode = SelectionModeT.Node;
     [SerializeField] private StatesT state = StatesT.Selecting;
-    public JeilElement selected;
     public List<JeilElement> selections = new List<JeilElement>();
     [Header("UI")] 
     public GameObject ui;
@@ -134,21 +138,16 @@ public class EditorManager : MonoBehaviour
             DeleteNode(elem as JeilNode);
     }
 
-    public void Select(JeilElement what)
-    {
-        if (what != null)
-        {
-            selected = what;
-            if(selected is JeilNode) ((JeilNode)selected).SetOutline(true);
-        }
-    }
-
     public void Deselect()
     {
-        if (selected == null) return;
-        
-        if(selected is JeilNode) ((JeilNode)selected).SetOutline(false);
-        selected = null;
+        foreach (JeilElement elem in selections)
+        {
+            elem.SetOutline(false);
+            //if(elem is JeilNode) ((JeilNode)elem).SetOutline(false);
+            //if(elem is JeilEdge) ((JeilEdge)elem).SetOutline(false);
+        }
+
+        selections.Clear();
     }
     
     public void LeftClickOn()
@@ -171,16 +170,9 @@ public class EditorManager : MonoBehaviour
         switch (state)
         {
             case StatesT.Selecting:
-                StopDragging();
-                if (elem == null)
-                    break;
-                
-                Deselect();
-                Select(elem);
-                OpenPropertyMenu();
+                StopDragging(elem);
                 break;
             case StatesT.Connecting:
-                
                 if (elem == null || elem is JeilEdge)
                 {
                     connectEnd.Unhold();
@@ -272,7 +264,6 @@ public class EditorManager : MonoBehaviour
     private void StartDragging()
     {
         dragRect.Set(GameManager.obj.pinput.mousePosition.x, Screen.height - GameManager.obj.pinput.mousePosition.y, 0, 0);
-        selections.Clear();
         isDragging = true;
     }
 
@@ -285,27 +276,39 @@ public class EditorManager : MonoBehaviour
         GUI.DrawTexture(dragRect, dragImage, ScaleMode.StretchToFill, true);
     }
     
-    private void StopDragging()
+    private void StopDragging(JeilElement ElemOnMouse)
     {
-        if (!isDragging) return;
-
-        if (dragRect.width * dragRect.height < 100)
+        Deselect();
+        
+        if (Mathf.Abs(dragRect.width * dragRect.height) < 10)
         {
-            Collider2D raycasted = Physics2D.OverlapPoint(GameManager.MousePosition(), GameManager.obj.layers.edge|GameManager.obj.layers.node);
-            if (raycasted != null)
+            if (ElemOnMouse)
             {
-                if (raycasted.gameObject.layer == GameManager.GetRealLayer(GameManager.obj.layers.edge))
-                {
-                    
-                }
-                else
-                {
-                }
+                if(ElemOnMouse is JeilNode) ((JeilNode)ElemOnMouse).SetOutline(true);
+                selections.Add(ElemOnMouse);
+                ElemOnMouse.SetOutline(true);
             }
+            isDragging = false;
+            dragRect = Rect.zero;
+            return;
         }
+        
+        Vector2 min = GameManager.Screen2World(dragRect.min);
+        Vector2 max = GameManager.Screen2World(dragRect.max);
+        LayerMask layer = selectionMode == SelectionModeT.Node ? GameManager.obj.layers.node : GameManager.obj.layers.edge;
+        Collider2D[] colliders = Physics2D.OverlapAreaAll(min, max, layerMask: layer);
         
         isDragging = false;
         dragRect = Rect.zero;
+
+        if (colliders.Length == 0) return;
+
+        foreach (Collider2D col in colliders)
+        {
+            JeilElement element =  col.gameObject.GetComponent<JeilElement>();
+            element.SetOutline(true);
+            selections.Add(element);
+        }
     }
 
     public void Cancel()
@@ -363,53 +366,81 @@ public class EditorManager : MonoBehaviour
 
     public void OpenPropertyMenu()
     {
-        menu.ActivateFrom(selected);
+        menu.Activate(selectionMode, selections);
     }
 
     public void ClosePropertyMenu(bool clearSelected = false)
     {
-        if (clearSelected) selected = null;
+        if (clearSelected) Deselect();
         menu.CloseAll();
     }
 
     public void SetToStartNode()
     {
+        if (selections.Count != 1) return;
+        JeilElement selected = selections[0];
+        
         if (selected is not JeilNode) return;
+        
         if ((JeilNode)selected == GameManager.obj.managers.pathFinding.destinationNode) return;
+        
         if(GameManager.obj.managers.pathFinding.startNode != null) 
             GameManager.obj.managers.pathFinding.startNode.SetColour(Color.red);
+        
         GameManager.obj.managers.pathFinding.startNode = (JeilNode)selected;
+        
         ((JeilNode)selected).SetColour(Color.lawnGreen);
     }
     
     public void SetToDestinationNode()
     {
+        if (selections.Count != 1) return;
+        JeilElement selected = selections[0];
+        
         if (selected is not JeilNode) return;
+        
         if ((JeilNode)selected == GameManager.obj.managers.pathFinding.startNode) return;
+        
         if(GameManager.obj.managers.pathFinding.destinationNode != null) 
             GameManager.obj.managers.pathFinding.destinationNode.SetColour(Color.red);
+        
         GameManager.obj.managers.pathFinding.destinationNode = (JeilNode)selected;
+        
         ((JeilNode)selected).SetColour(Color.blue);
     }
 
     public void ToggleLandmark(bool toggle)
     {
-        if (selected is not JeilNode) return;
-        JeilNode sel =  selected as JeilNode;
-        sel.visibleInPathfinding = toggle;
+        foreach (JeilElement selected in selections)
+        {
+            if (selected is not JeilNode) return;
+            JeilNode sel =  selected as JeilNode;
+            sel.visibleInPathfinding = toggle;
+        }
     }
 
     public void ToggleEdgeVisibility(bool toggle)
     {
-        if (selected is not JeilEdge) return;
-        JeilEdge sel =  selected as JeilEdge;
-        sel.visibleInPathfinding = toggle;
+        foreach (JeilElement selected in selections)
+        {
+            if (selected is not JeilEdge) return;
+            JeilEdge sel =  selected as JeilEdge;
+            sel.visibleInPathfinding = toggle;
+        }
     }
     
     public void SetEdgeCost(string to) // Stupid ngl. I just solely want int input.
     {
-        if (selected is not JeilEdge) return;
-        JeilEdge sel =  selected as JeilEdge;
-        sel.SetCost(int.Parse(to));
+        foreach (JeilElement selected in selections)
+        {
+            if (selected is not JeilEdge) return;
+            JeilEdge sel = selected as JeilEdge;
+            sel.SetCost(int.Parse(to));
+        }
+    }
+
+    public void SetSelectionMode(int to)
+    {
+        selectionMode = (SelectionModeT)to;
     }
 }

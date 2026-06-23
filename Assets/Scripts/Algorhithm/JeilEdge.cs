@@ -10,19 +10,24 @@ public class JeilEdge : JeilElement
     public GameObject graphics;
     public bool visibleInPathfinding = true;
     
-    [HideInInspector] public LineRenderer line;
+    public LineRenderer line; 
+    public LineRenderer outline;
     [HideInInspector] public TMP_InputField input;
     [HideInInspector] public EdgeCollider2D col;
 
     void Awake()
     {
-        line = GetComponentInChildren<LineRenderer>();
         line.positionCount = 2;
+        outline.positionCount = 2;
         input = GetComponent<TMP_InputField>();
         col =  GetComponent<EdgeCollider2D>();
         SetCost(1);
     }
     
+    public override void SetOutline(bool to)
+    {
+        outline.gameObject.SetActive(to);
+    }
     
     public void ConnectNodes(JeilNode what1, JeilNode what2)
     {
@@ -36,6 +41,9 @@ public class JeilEdge : JeilElement
     {
         if (connectedNodes.Count == 2)
         {
+            outline.SetPosition(0, connectedNodes[0].transform.position);
+            outline.SetPosition(1, connectedNodes[1].transform.position);
+            
             line.SetPosition(0, connectedNodes[0].transform.position);
             line.SetPosition(1, connectedNodes[1].transform.position);
             this.transform.position = ((connectedNodes[0].transform.position + connectedNodes[1].transform.position) / 2f) + Vector3.forward;

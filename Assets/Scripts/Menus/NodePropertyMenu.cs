@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,16 +10,25 @@ public class NodePropertyMenu : MonoBehaviour
     public TMP_InputField layerInput;
     public Toggle landmarkToggle;
 
-    public void Activate(bool multipleSelected = false)
+    public void Activate(List<JeilElement> selections)
     {
         gameObject.SetActive(true);
-        if(multipleSelected)
+        if(selections.Count > 1)
         {
-            // ... Disable button gameobjects
+            setStartNodeButton.interactable = false;
+            setDestinationNodeButton.interactable = false;
+
+            layerInput.text = "";
+            landmarkToggle.isOn = false;
         }
         else
         {
-            // ... Enable buttons
+            setStartNodeButton.interactable = true;
+            setDestinationNodeButton.interactable = true;
+            
+            JeilNode node = selections[0] as JeilNode;
+            layerInput.text = node.layer.ToString();
+            landmarkToggle.isOn = node.visibleInPathfinding;
         }
     }
 

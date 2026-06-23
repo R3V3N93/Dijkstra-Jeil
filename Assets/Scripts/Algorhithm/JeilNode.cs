@@ -27,7 +27,7 @@ public class JeilNode : JeilElement
         sprite.color = to;
     }
 
-    public void SetOutline(bool to)
+    public override void SetOutline(bool to)
     {
         outline.SetActive(to);
     }

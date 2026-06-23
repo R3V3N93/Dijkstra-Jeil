@@ -198,10 +198,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   index: -1
+  layer: 0
   neighbors: []
-  visibleInPathfinding: 0
   outline: {fileID: 718080474165263608}
   sprite: {fileID: 558124247274659134}
+  visibleInPathfinding: 0
 --- !u!58 &2960991660199483789
 CircleCollider2D:
   m_ObjectHideFlags: 0

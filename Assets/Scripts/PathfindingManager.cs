@@ -14,6 +14,9 @@ public struct TimerInfo
 
 public class PathfindingManager : MonoBehaviour
 {
+    public Stopwatch watch = new Stopwatch();
+    public TimerInfo timer;
+    public PathFindingInfo info;
     [Header("UI")] 
     public GameObject ui;
     enum Algorithm
@@ -27,9 +30,10 @@ public class PathfindingManager : MonoBehaviour
     public JeilNode destinationNode;
     [SerializeField] Algorithm selectedAlgorhithm = Algorithm.BreadthFirstSearch;
 
-    [Header("UnityEngine.Debug")]
+    [Header("Debug")]
     [SerializeField] List<JeilNode> shortestPath = new List<JeilNode>();
 
+    
     public LineRenderer linePrefab;
     public List<LineRenderer> activeLines;
 
@@ -99,7 +103,7 @@ public class PathfindingManager : MonoBehaviour
     public void StartPathFinding()
     {
         ClearPath();
-        Stopwatch watch = new Stopwatch();
+        watch.Reset();
         watch.Start();
         switch (selectedAlgorhithm)
         {
@@ -113,7 +117,6 @@ public class PathfindingManager : MonoBehaviour
                 Astar();
                 break;
         }
-
         if (shortestPath.Count == 0)
         {
             UnityEngine.Debug.LogError("Something's wrong with Algorhithm execution. Check log.");
@@ -133,8 +136,12 @@ public class PathfindingManager : MonoBehaviour
             }
         }
 
-        watch.Stop();
-        UnityEngine.Debug.Log("Algorithm Execution complete. Elapsed Time : " + watch.ElapsedMilliseconds);
+        
+        timer.lastAlgorithm = watch.ElapsedTicks;
+        
+        info.UpdateFrom(timer);
+        
+        UnityEngine.Debug.Log("Algorithm Execution complete. Elapsed Time : " + watch.ElapsedTicks);
     }
 
     public void BreadthFirstSearch()
@@ -175,6 +182,7 @@ public class PathfindingManager : MonoBehaviour
             sizak = came_from[sizak];
         }
         shortestPath.Reverse();
+        watch.Stop();
     }
 
     public void Dijkstra()
@@ -228,6 +236,7 @@ public class PathfindingManager : MonoBehaviour
             sizak = came_from[sizak];
         }
         shortestPath.Reverse();
+        watch.Stop();
     }
 
     public void Astar()
@@ -285,11 +294,11 @@ public class PathfindingManager : MonoBehaviour
             sizak = came_from[sizak];
         }
         shortestPath.Reverse();
+        watch.Stop();
     }
     
     private int Heuristic(Vector2 neighborNode, Vector2 destinationNode, uint neighborLayer, uint destinationLayer)
     {
-        int temp = (int)(Mathf.Abs(neighborNode.x-destinationNode.x)+Mathf.Abs(neighborNode.y-destinationNode.y) + 2*Mathf.Abs((int)destinationLayer-(int)neighborLayer));
-        return temp;
+        return (int)(Math.Abs(neighborNode.x-destinationNode.x)+Math.Abs(neighborNode.y-destinationNode.y) + 2*Math.Abs((int)destinationLayer-(int)neighborLayer));
     }
 }

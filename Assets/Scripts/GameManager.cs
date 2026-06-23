@@ -100,6 +100,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    static public Vector2 Screen2World(Vector2 from)
+    {
+        return obj.playerCamera.ScreenToWorldPoint(from);
+    }
+
     static public Vector2 MousePosition()
     {
         Vector3 screenPosition = new Vector3(obj.pinput.mousePosition.x, obj.pinput.mousePosition.y, obj.playerCamera.nearClipPlane);
@@ -112,7 +117,7 @@ public class GameManager : MonoBehaviour
                 screenPosition.x += obj.pinput.mouseDelta.x;
             else screenPosition.y += obj.pinput.mouseDelta.y;
         }
-        return obj.playerCamera.ScreenToWorldPoint(screenPosition);
+        return Screen2World(screenPosition);
     }
 
     static public JeilElement GetElementOnMouse()
