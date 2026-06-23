@@ -71,6 +71,9 @@ public class EditorManager : MonoBehaviour
     [SerializeField] private Texture2D dragImage;
     [SerializeField] private Texture2D testImage;
     
+    [Header("Moving")]
+    [SerializeField] private Vector2 oldMouse = Vector2.zero;
+    
     private void Update()
     {
         switch (state)
@@ -78,8 +81,18 @@ public class EditorManager : MonoBehaviour
             case StatesT.Selecting:
                 break;
             case StatesT.Connecting:
-            case StatesT.Moving:
                 if(connectEnd != null) connectEnd.transform.position = GameManager.MousePosition();
+                break;
+            case StatesT.Moving:
+                if (selections.Count > 0)
+                {
+                    Vector3 dMove = GameManager.MousePosition() - oldMouse;
+                    foreach (JeilElement sel in selections)
+                    {
+                        sel.transform.position += dMove;
+                    }
+                    oldMouse = GameManager.MousePosition();
+                }
                 break;
         }
     }
@@ -140,6 +153,7 @@ public class EditorManager : MonoBehaviour
 
     public void Deselect()
     {
+        ClosePropertyMenu(); // setting it to true will cause infinite regressions btw. I don't wanna try it.
         foreach (JeilElement elem in selections)
         {
             elem.SetOutline(false);
@@ -155,7 +169,8 @@ public class EditorManager : MonoBehaviour
         switch (state)
         {
             case StatesT.Selecting:
-                StartDragging();
+                if(!GameManager.obj.pinput.ctrl)
+                    StartDragging();
                 break;
             case StatesT.Connecting:
                 break;
@@ -171,6 +186,21 @@ public class EditorManager : MonoBehaviour
         {
             case StatesT.Selecting:
                 StopDragging(elem);
+                if (GameManager.obj.pinput.ctrl && elem)
+                {
+                    ClosePropertyMenu();
+                    if (selections.Contains(elem))
+                    {
+                        selections.Remove(elem);
+                        elem.SetOutline(false);
+                    }
+                    else
+                    {
+                        if (elem.gameObject.layer != GameManager.GetRealLayer(GetSelectedModeLayer())) break;
+                        selections.Add(elem);
+                        elem.SetOutline(true);
+                    }
+                }
                 break;
             case StatesT.Connecting:
                 if (elem == null || elem is JeilEdge)
@@ -205,6 +235,20 @@ public class EditorManager : MonoBehaviour
         switch (state)
         {
             case StatesT.Selecting:
+                if (selections.Count > 0)
+                {
+                    if (GameManager.obj.pinput.ctrl)
+                    {
+                        state = StatesT.Moving;
+                        oldMouse = GameManager.MousePosition();
+                    }
+                    else
+                    {
+                        OpenPropertyMenu();
+                    }
+                    break;
+                }
+                
                 if (elem == null)
                 {
                     state = StatesT.Connecting;
@@ -222,13 +266,6 @@ public class EditorManager : MonoBehaviour
                         connectEnd = CreateNode(GameManager.MousePosition());
                         connectEnd.Hold();
                     }
-                    else
-                    {
-                        state = StatesT.Moving;
-                        connectEnd = (JeilNode)elem;
-                        connectEnd.Hold();
-                    }
-                    break;
                 }
                 break;
             case StatesT.Connecting:
@@ -254,8 +291,6 @@ public class EditorManager : MonoBehaviour
                 }
                 break;
             case StatesT.Moving:
-                connectEnd.Unhold();
-                connectEnd = null;
                 state = StatesT.Selecting;
                 break;
         }
@@ -278,25 +313,37 @@ public class EditorManager : MonoBehaviour
     
     private void StopDragging(JeilElement ElemOnMouse)
     {
-        Deselect();
+        if (!isDragging) return;
         
         if (Mathf.Abs(dragRect.width * dragRect.height) < 10)
         {
             if (ElemOnMouse)
             {
-                if(ElemOnMouse is JeilNode) ((JeilNode)ElemOnMouse).SetOutline(true);
-                selections.Add(ElemOnMouse);
-                ElemOnMouse.SetOutline(true);
+                Deselect();
+                if (ElemOnMouse.gameObject.layer == GameManager.GetRealLayer(GetSelectedModeLayer()))
+                {
+                    selections.Add(ElemOnMouse);
+                    ElemOnMouse.SetOutline(true);
+                }
             }
             isDragging = false;
             dragRect = Rect.zero;
             return;
         }
         
-        Vector2 min = GameManager.Screen2World(dragRect.min);
-        Vector2 max = GameManager.Screen2World(dragRect.max);
-        LayerMask layer = selectionMode == SelectionModeT.Node ? GameManager.obj.layers.node : GameManager.obj.layers.edge;
-        Collider2D[] colliders = Physics2D.OverlapAreaAll(min, max, layerMask: layer);
+        Deselect();
+
+        Vector2 min = dragRect.min;
+        Vector2 max = dragRect.max;
+
+        min.y = Screen.height-min.y;
+        max.y = Screen.height-max.y;
+        
+        min = GameManager.Screen2World(min);
+        max = GameManager.Screen2World(max);
+        
+        Debug.DrawLine(min, max,  Color.red, 1f);
+        Collider2D[] colliders = Physics2D.OverlapAreaAll(min, max, layerMask: GetSelectedModeLayer());
         
         isDragging = false;
         dragRect = Rect.zero;
@@ -313,7 +360,7 @@ public class EditorManager : MonoBehaviour
 
     public void Cancel()
     {
-        ClosePropertyMenu(true);
+        ClosePropertyMenu(false);
     }
 
     public JeilNode CreateNode(Vector2 pos, int index = -1, bool landmark = false, int layer = 0)
@@ -435,12 +482,33 @@ public class EditorManager : MonoBehaviour
         {
             if (selected is not JeilEdge) return;
             JeilEdge sel = selected as JeilEdge;
-            sel.SetCost(int.Parse(to));
+            int parsed = 0;
+            if (int.TryParse(to, out parsed))
+                sel.SetCost(parsed);
+        }
+    }
+    
+    public void SetNodeLayer(string to)
+    {
+        foreach (JeilElement selected in selections)
+        {
+            if (selected is not JeilNode) return;
+            JeilNode sel = selected as JeilNode;
+            int parsed = 0;
+            if (int.TryParse(to, out parsed))
+                sel.layer = (uint)parsed;
         }
     }
 
     public void SetSelectionMode(int to)
     {
+        Deselect();
+        ClosePropertyMenu();
         selectionMode = (SelectionModeT)to;
+    }
+
+    public LayerMask GetSelectedModeLayer()
+    {
+        return selectionMode == SelectionModeT.Node ? GameManager.obj.layers.node : GameManager.obj.layers.edge;
     }
 }

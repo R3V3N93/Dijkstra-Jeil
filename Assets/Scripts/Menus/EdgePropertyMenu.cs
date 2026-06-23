@@ -19,7 +19,7 @@ public class EdgePropertyMenu : MonoBehaviour
         else
         {
             JeilEdge edge = selections[0] as JeilEdge;
-            costInput.text = edge.cost.ToString();
+            costInput.SetTextWithoutNotify(edge.cost.ToString());
             visibilityToggle.isOn = edge.visibleInPathfinding;
         }
     }

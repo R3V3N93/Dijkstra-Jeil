@@ -1277,7 +1277,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 410884620}
         m_TargetAssemblyTypeName: EditorManager, Assembly-CSharp
-        m_MethodName: SetEdgeCost
+        m_MethodName: SetNodeLayer
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1394,6 +1394,7 @@ MonoBehaviour:
   isDragging: 0
   dragImage: {fileID: 2800000, guid: f3be4cec13a0e5a4abc2ce306c216ded, type: 3}
   testImage: {fileID: 2800000, guid: 5a19fd6f70c85f84fa1602f22d0bdb6e, type: 3}
+  oldMouse: {x: 0, y: 0}
 --- !u!4 &410884621
 Transform:
   m_ObjectHideFlags: 0
@@ -4225,9 +4226,8 @@ MonoBehaviour:
     editor: {fileID: 410884620}
     pathFinding: {fileID: 46536245}
   maxScroll: 50
-  panningSpeed: 0.05
   undoBuffer: []
-  mousePositionOld: {x: 0, y: 0}
+  oldMousePos: {x: 0, y: 0}
 --- !u!4 &1115042064
 Transform:
   m_ObjectHideFlags: 0

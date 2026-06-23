@@ -17,8 +17,8 @@ public class NodePropertyMenu : MonoBehaviour
         {
             setStartNodeButton.interactable = false;
             setDestinationNodeButton.interactable = false;
-
-            layerInput.text = "";
+            
+            layerInput.SetTextWithoutNotify("");
             landmarkToggle.isOn = false;
         }
         else
@@ -27,7 +27,7 @@ public class NodePropertyMenu : MonoBehaviour
             setDestinationNodeButton.interactable = true;
             
             JeilNode node = selections[0] as JeilNode;
-            layerInput.text = node.layer.ToString();
+            layerInput.SetTextWithoutNotify(node.layer.ToString());
             landmarkToggle.isOn = node.visibleInPathfinding;
         }
     }
@@ -35,5 +35,10 @@ public class NodePropertyMenu : MonoBehaviour
     public void Disable()
     {
         gameObject.SetActive(false);
+    }
+
+    public void Update()
+    {
+        
     }
 }
